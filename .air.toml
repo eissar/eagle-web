@@ -1,0 +1,19 @@
+# https://github.com/cosmtrek/air
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o ./tmp/main.exe ."
+bin = "tmp/main.exe"
+
+# Files to watch
+# include_ext = ["go", "tpl", "tmpl", "html"]
+# Directories to exclude
+# exclude_dir = ["assets", "tmp", "vendor"]
+
+[log]
+time = true
+
+[misc]
+clean_on_exit = true
