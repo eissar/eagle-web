@@ -4,10 +4,7 @@ go 1.24.0
 
 toolchain go1.24.7
 
-require (
-	github.com/a-h/templ v0.3.943
-	github.com/eissar/eagle-go v0.0.2
-)
+require github.com/eissar/eagle-go v0.0.4
 
 require (
 	github.com/labstack/gommon v0.4.2 // indirect
@@ -21,9 +18,6 @@ require (
 )
 
 require (
-	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/labstack/echo/v4 v4.13.4
-	github.com/spf13/cobra v1.10.1 // indirect
-	github.com/spf13/pflag v1.0.9 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 )

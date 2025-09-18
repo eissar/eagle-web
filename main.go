@@ -4,7 +4,6 @@ import (
 	// "encoding/json"
 
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 	"strings"
@@ -17,38 +16,36 @@ import (
 
 const BASE_URL = "http://127.0.0.1:41595"
 
-func ServeThumbnailHandler() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		id := c.Param("itemId")
-		resFlag := c.QueryParam("fq") // full quality
+func thumbnailHandler(c echo.Context) error {
+	id := c.Param("itemId")
+	resFlag := c.QueryParam("fq") // full quality
 
-		getThumbnail := func() (string, error) {
-			if resFlag == "true" {
-				return GetEagleThumbnailFullRes(id)
-			}
-			return GetEagleThumbnail(id)
+	getThumbnail := func() (string, error) {
+		if resFlag == "true" {
+			return GetEagleThumbnailFullRes(id)
 		}
-
-		thumbnail, err := getThumbnail()
-		if err != nil {
-			res := fmt.Sprintf("get thumbnail path=%s err=%s", c.Path(), err.Error())
-			return c.String(400, res)
-		}
-		// filepath exists.
-		return c.File(thumbnail)
+		return GetEagleThumbnail(id)
 	}
+
+	thumbnail, err := getThumbnail()
+	if err != nil {
+		res := fmt.Sprintf("get thumbnail path=%s err=%s", c.Path(), err.Error())
+		return c.String(400, res)
+	}
+	// filepath exists.
+	return c.File(thumbnail)
 }
 
 func galleryHandler(c echo.Context) error {
 
 	items, fetchErr := eagle.ItemList(BASE_URL, eagle.ItemListOptions{Limit: 200})
 	if fetchErr != nil {
-		return c.String(http.StatusInternalServerError, fetchErr.Error())
+		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
 	}
 
 	folders, fetchErr := eagle.FolderList(BASE_URL)
 	if fetchErr != nil {
-		return c.String(http.StatusInternalServerError, fetchErr.Error())
+		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
 	}
 	folderNames := make([]string, len(folders))
 	for i, f := range folders {
@@ -60,7 +57,7 @@ func galleryHandler(c echo.Context) error {
 	// GalleryPage(items, nil, folderNames).Render(c.Request().Context(), c.Response())
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
-		return c.String(http.StatusInternalServerError, "failed to render template")
+		return c.String(echo.ErrInternalServerError.Code, "failed to render template")
 	}
 	return nil
 }
@@ -78,12 +75,12 @@ func itemsHandler(c echo.Context) error {
 		Folders: "",
 	})
 	if fetchErr != nil {
-		return c.String(http.StatusInternalServerError, fetchErr.Error())
+		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
 	}
 
 	folders, fetchErr := eagle.FolderList(BASE_URL)
 	if fetchErr != nil {
-		return c.String(http.StatusInternalServerError, fetchErr.Error())
+		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
 	}
 	folderNames := make([]string, len(folders))
 	for i, f := range folders {
@@ -95,7 +92,7 @@ func itemsHandler(c echo.Context) error {
 	// GalleryPage(items, nil, folderNames).Render(c.Request().Context(), c.Response())
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
-		return c.String(http.StatusInternalServerError, "failed to render template")
+		return c.String(echo.ErrInternalServerError.Code, "failed to render template")
 	}
 	return nil
 }
@@ -203,7 +200,7 @@ func main() {
 
 	e := echo.New()
 	e.GET("/gallery", galleryHandler)
-	e.GET("/img/:itemId", ServeThumbnailHandler())
+	e.GET("/img/:itemId", thumbnailHandler)
 	e.GET("/items", itemsHandler)
 
 	addr := ":8081"
