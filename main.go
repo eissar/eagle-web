@@ -13,7 +13,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// const BASE_URL = "127.0.0.1:41595"
 const BASE_URL = "http://127.0.0.1:41595"
 
 func ServeThumbnailHandler() echo.HandlerFunc {
