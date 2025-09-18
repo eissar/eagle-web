@@ -1,0 +1,161 @@
+{{define "gallery"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eagle Item Gallery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+
+        .masonry-grid {
+            column-count: 2;
+            column-gap: 1.25rem;
+        }
+
+        @media (min-width: 768px) {
+            .masonry-grid {
+                column-count: 3;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .masonry-grid {
+                column-count: 4;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            .masonry-grid {
+                column-count: 5;
+            }
+        }
+
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 1.25rem;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .masonry-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .marquee-content {
+            display: flex;
+            animation: marquee 30s linear infinite;
+        }
+
+        @keyframes marquee {
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(-50%);
+            }
+        }
+    </style>
+</head>
+
+<body class="antialiased text-slate-700">
+    <header id="toolbar" class="sticky top-0 z-20 bg-white/80 backdrop-blur-lg shadow-sm">
+        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-4 text-sm flex-1 min-w-0 overflow-x-auto">
+                    <span class="font-medium text-slate-500">Tags:</span>
+                    <div class="flex gap-2 overflow-x-auto whitespace-nowrap"
+                        style="-ms-overflow-style:none; scrollbar-width:none;">
+                        {{range .AllTags}}
+                        <span
+                            class="flex items-center bg-slate-100 text-slate-600 px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0">{{.}}</span>
+                        {{end}}
+                    </div>
+                    <span class="font-medium text-slate-500">Folders:</span>
+                    <div class="flex gap-2 overflow-x-auto whitespace-nowrap"
+                        style="-ms-overflow-style:none; scrollbar-width:none;">
+                        {{range .AllFolders}}
+                        <span
+                            class="flex items-center bg-slate-100 text-slate-600 px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0">{{.}}</span>
+                        {{end}}
+                    </div>
+                </div>
+
+                <div class="relative w-full max-w-xs flex-shrink-0">
+                    <input id="search-input" type="text" placeholder="Search by tag"
+                        class="block w-full bg-slate-100 border border-transparent rounded-lg py-2 pl-10 pr-4 text-slate-700 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-screen-2xl mx-auto p-5 sm:p-6 lg:p-8">
+        <div id="photo-grid" class="masonry-grid">
+            {{range .Items}}
+            <div class="masonry-item group" data-tags='{{lower (join .Tags ", ")}}'>
+                <a href="{{.URL}}" title="{{.Annotation}}" target="_blank" rel="noopener noreferrer">
+                    <div
+                        class="relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <img src='{{printf "/img/%s" .Id}}' alt="{{.Name}}" loading="lazy"
+                            class="transition-transform duration-300 group-hover:scale-105" />
+                        <label class="block p-4 w-full">
+                            <h3 class="font-bold text-white truncate" title="{{.Name}}">{{.Name}}</h3>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                {{range .Tags}}
+                                <span
+                                    class="bg-white/20 text-white text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm">{{.}}</span>
+                                {{end}}
+                            </div>
+                        </label>
+                    </div>
+                </a>
+            </div>
+            {{end}}
+        </div>
+
+        <div id="no-results" class="hidden text-center py-20">
+            <h2 class="text-2xl font-semibold text-slate-600">No items found</h2>
+            <p class="text-slate-500 mt-2">Try a different search term.</p>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('search-input');
+            const grid = document.getElementById('photo-grid');
+            const noResults = document.getElementById('no-results');
+
+            function filterItems() {
+                const searchTerm = searchInput.value.trim().toLowerCase();
+                const items = grid.getElementsByClassName('masonry-item');
+                let visibleCount = 0;
+
+                Array.from(items).forEach(item => {
+                    const tags = item.dataset.tags || '';
+                    if (tags.includes(searchTerm)) {
+                        item.style.display = 'inline-block';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+
+            searchInput.addEventListener('input', filterItems);
+        });
+    </script>
+</body>
+{{end}}

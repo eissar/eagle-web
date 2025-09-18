@@ -9,6 +9,8 @@ import (
 	"os"
 	"strings"
 
+	"html/template"
+
 	"github.com/eissar/eagle-go"
 	"github.com/labstack/echo/v4"
 )
@@ -53,8 +55,10 @@ func itemsHandler(c echo.Context) error {
 	}
 
 	// renderErr := itemsTemplate(items, BASE_URL).Render(c.Request().Context(), c.Response())
-	renderErr := GalleryPage(items, nil, folderNames).Render(c.Request().Context(), c.Response())
+	renderErr := tmpl.Execute(c.Response().Writer, PageData{items, nil, folderNames})
+	// GalleryPage(items, nil, folderNames).Render(c.Request().Context(), c.Response())
 	if renderErr != nil {
+		fmt.Printf("renderErr: %v\n", renderErr)
 		return c.String(http.StatusInternalServerError, "failed to render template")
 	}
 	return nil
@@ -135,7 +139,32 @@ func resolveThumbnailPath(thumbnail string) (string, error) {
 	// fmt.Errorf("resolvethumb: no full-res file at path=%s, err=%w", thumbnail)
 }
 
+type PageData struct {
+	Items      []*eagle.ListItem
+	AllTags    []string
+	AllFolders []string
+}
+
+// tmpl holds the parsed template; it is initialized once at startup.
+var tmpl *template.Template
+
+// Helper functions for the template.
+var tmplFuncs = template.FuncMap{
+	"join":   strings.Join,
+	"lower":  strings.ToLower,
+	"printf": fmt.Sprintf,
+}
+
 func main() {
+	// Resolve the path to the template file (relative to the executable's working directory).
+	// templatePath := filepath.Join("templates", "gallery.gohtml")
+	templatePath := "./gallery.gohtml"
+	var err error
+	tmpl, err = template.New("gallery").Funcs(tmplFuncs).ParseFiles(templatePath)
+	if err != nil {
+		panic(fmt.Errorf("failed to parse template %s: %w", templatePath, err))
+	}
+
 	e := echo.New()
 	e.GET("/items", itemsHandler)
 	// e.GET("/eagle://item/:itemId", ServeThumbnailHandler())
