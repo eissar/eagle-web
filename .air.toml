@@ -8,7 +8,7 @@ cmd = "go build -o ./tmp/main.exe ."
 bin = "tmp/main.exe"
 
 # Files to watch
-# include_ext = ["go", "tpl", "tmpl", "html"]
+include_ext = ["go", "gohtml"]
 # Directories to exclude
 # exclude_dir = ["assets", "tmp", "vendor"]
 

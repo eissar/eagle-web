@@ -39,7 +39,8 @@ func ServeThumbnailHandler() echo.HandlerFunc {
 	}
 }
 
-func itemsHandler(c echo.Context) error {
+func galleryHandler(c echo.Context) error {
+
 	items, fetchErr := eagle.ItemList(BASE_URL, eagle.ItemListOptions{Limit: 200})
 	if fetchErr != nil {
 		return c.String(http.StatusInternalServerError, fetchErr.Error())
@@ -55,7 +56,42 @@ func itemsHandler(c echo.Context) error {
 	}
 
 	// renderErr := itemsTemplate(items, BASE_URL).Render(c.Request().Context(), c.Response())
-	renderErr := tmpl.Execute(c.Response().Writer, PageData{items, nil, folderNames})
+	renderErr := galleryTempl.Execute(c.Response().Writer, PageData{items, nil, folderNames})
+	// GalleryPage(items, nil, folderNames).Render(c.Request().Context(), c.Response())
+	if renderErr != nil {
+		fmt.Printf("renderErr: %v\n", renderErr)
+		return c.String(http.StatusInternalServerError, "failed to render template")
+	}
+	return nil
+}
+
+func itemsHandler(c echo.Context) error {
+
+	fmt.Printf("c.QueryParams(): %v\n", c.QueryParams())
+	items, fetchErr := eagle.ItemList(BASE_URL, eagle.ItemListOptions{
+		Limit:   10,
+		Offset:  0,
+		OrderBy: "",
+		Keyword: c.QueryParam("keyword"),
+		Ext:     "",
+		Tags:    "",
+		Folders: "",
+	})
+	if fetchErr != nil {
+		return c.String(http.StatusInternalServerError, fetchErr.Error())
+	}
+
+	folders, fetchErr := eagle.FolderList(BASE_URL)
+	if fetchErr != nil {
+		return c.String(http.StatusInternalServerError, fetchErr.Error())
+	}
+	folderNames := make([]string, len(folders))
+	for i, f := range folders {
+		folderNames[i] = f.Name
+	}
+
+	// just re-use page data
+	renderErr := itemsTempl.Execute(c.Response().Writer, PageData{items, nil, nil})
 	// GalleryPage(items, nil, folderNames).Render(c.Request().Context(), c.Response())
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
@@ -145,8 +181,9 @@ type PageData struct {
 	AllFolders []string
 }
 
-// tmpl holds the parsed template; it is initialized once at startup.
-var tmpl *template.Template
+// galleryTempl holds the parsed template; it is initialized once at startup.
+var galleryTempl *template.Template
+var itemsTempl *template.Template
 
 // Helper functions for the template.
 var tmplFuncs = template.FuncMap{
@@ -156,20 +193,19 @@ var tmplFuncs = template.FuncMap{
 }
 
 func main() {
-	// Resolve the path to the template file (relative to the executable's working directory).
-	// templatePath := filepath.Join("templates", "gallery.gohtml")
 	templatePath := "./gallery.gohtml"
 	var err error
-	tmpl, err = template.New("gallery").Funcs(tmplFuncs).ParseFiles(templatePath)
+	galleryTempl, err = template.New("gallery").Funcs(tmplFuncs).ParseFiles(templatePath)
+	itemsTempl, err = template.New("items").Funcs(tmplFuncs).ParseFiles(templatePath)
 	if err != nil {
 		panic(fmt.Errorf("failed to parse template %s: %w", templatePath, err))
 	}
 
 	e := echo.New()
-	e.GET("/items", itemsHandler)
-	// e.GET("/eagle://item/:itemId", ServeThumbnailHandler())
+	e.GET("/gallery", galleryHandler)
 	e.GET("/img/:itemId", ServeThumbnailHandler())
+	e.GET("/items", itemsHandler)
 
-	addr := ":8080"
+	addr := ":8081"
 	e.Logger.Fatal(e.Start(addr))
 }
