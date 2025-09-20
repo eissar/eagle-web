@@ -1,8 +1,31 @@
+{{define "options"}}
+<div class="relative inline-block">
+    <details class="relative">
+        <summary id="options-gear" aria-haspopup="true"
+            class="p-2 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer list-none">
+            <img src="https://unpkg.com/heroicons@2.0.13/24/outline/cog.svg" class="h-5 w-5 text-slate-500"
+                alt="Settings" />
+        </summary>
+        <div class="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-10">
+            <div class="p-2">
+                <label for="load-per-page" class="block text-sm font-medium text-slate-500 mb-1">Load per page:</label>
+                <select id="load-per-page" name="loadPerPage"
+                    class="w-full bg-white border border-gray-300 rounded-md p-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
+    </details>
+</div>
+{{end}}
 {{define "items"}}
 <div id="photo-grid" class="masonry-grid">
     {{range .Items}}
     <div class="masonry-item group" data-tags='{{lower (join .Tags ", ")}}'>
         <div class="relative overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
+            <!-- style="aspect-ratio: {{.Width}} / {{.Height}};" -->
             <a href="{{.URL}}" class="block p-4 w-full peer order-2" title="{{.Name}}">
                 <span class="font-bold text-white truncate">{{.Name}}</span>
                 <div class="flex flex-wrap gap-2 mt-2">
@@ -13,17 +36,26 @@
                     {{end}}
                 </div>
             </a>
-            <img src='{{printf "/img/%s" .Id}}' alt="{{.Name}}" loading="lazy"
+            <img src='{{printf "/img/%s" .Id}}' alt="{{.Name}}" loading="lazy" width="{{.Width}}" height="{{.Height}}"
                 class="transition-transform duration-300 peer-hover:scale-105 order-1" />
         </div>
     </div>
     {{end}}
+    <!-- hx-trigger="revealed" -->
+    <div id="load-more-trigger" class="flex justify-center my-4"
+        hx-get="/items?offset={{if .Offset}}{{.Offset}}{{else}}0{{end}}" hx-target="this" hx-swap="outerHTML"
+        hx-include="#search-input,#load-per-page" hx-select="#photo-grid > *">
+        <button class="btn">Load More</button>
+    </div>
 </div>
 {{end}}
 {{define "header"}}
 <header id="toolbar" class="sticky top-0 z-20 bg-white/80 backdrop-blur-lg shadow-sm">
     <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
+            {{template "options" .}}
+
+
             <div class="flex items-center gap-4 text-sm flex-1 min-w-0 overflow-x-auto">
                 <span class="font-medium text-slate-500">Tags:</span>
                 <div class="flex gap-2 overflow-x-auto whitespace-nowrap"
@@ -123,6 +155,12 @@
                 transform: translateX(-50%);
             }
         }
+
+        #load-more-trigger {
+            break-inside: avoid;
+            column-span: all;
+            /* forces the element to span the full width of the masonry columns */
+        }
     </style>
 </head>
 
@@ -130,7 +168,6 @@
     {{template "header" .}}
     <main class="max-w-screen-2xl mx-auto p-5 sm:p-6 lg:p-8">
         {{template "items" .}}
-
         <div class="htmx-indicator">Searching...</div>
         <div id="no-results" class="hidden text-center py-20">
             <h2 class="text-2xl font-semibold text-slate-600">No items found</h2>

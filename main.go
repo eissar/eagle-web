@@ -3,18 +3,23 @@ package main
 import (
 	// "encoding/json"
 
+	"embed"
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 
 	"html/template"
 
 	"github.com/eissar/eagle-go"
 	"github.com/labstack/echo/v4"
+
+	_ "embed"
 )
 
 const BASE_URL = "http://127.0.0.1:41595"
+const DefaultConfigOffset = 5
 
 func thumbnailHandler(c echo.Context) error {
 	id := c.Param("itemId")
@@ -37,8 +42,7 @@ func thumbnailHandler(c echo.Context) error {
 }
 
 func galleryHandler(c echo.Context) error {
-
-	items, fetchErr := eagle.ItemList(BASE_URL, eagle.ItemListOptions{Limit: 200})
+	items, fetchErr := eagle.ItemList(BASE_URL, eagle.ItemListOptions{Limit: DefaultConfigOffset})
 	if fetchErr != nil {
 		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
 	}
@@ -52,8 +56,8 @@ func galleryHandler(c echo.Context) error {
 		folderNames[i] = f.Name
 	}
 
-	// renderErr := itemsTemplate(items, BASE_URL).Render(c.Request().Context(), c.Response())
-	renderErr := galleryTempl.Execute(c.Response().Writer, PageData{items, nil, folderNames})
+	// first draw
+	renderErr := galleryTempl.Execute(c.Response().Writer, PageData{items, DefaultConfigOffset, nil, folderNames})
 	// GalleryPage(items, nil, folderNames).Render(c.Request().Context(), c.Response())
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
@@ -64,10 +68,14 @@ func galleryHandler(c echo.Context) error {
 
 func itemsHandler(c echo.Context) error {
 
-	fmt.Printf("c.QueryParams(): %v\n", c.QueryParams())
+	offset, err := strconv.Atoi(c.QueryParam("offset"))
+	if err != nil {
+		offset = 0
+	}
+
 	items, fetchErr := eagle.ItemList(BASE_URL, eagle.ItemListOptions{
-		Limit:   10,
-		Offset:  0,
+		Limit:   DefaultConfigOffset,
+		Offset:  offset,
 		OrderBy: "",
 		Keyword: c.QueryParam("keyword"),
 		Ext:     "",
@@ -87,9 +95,12 @@ func itemsHandler(c echo.Context) error {
 		folderNames[i] = f.Name
 	}
 
+	// for now, offset is ONLY used in retrieving the next page.
+	// we set the offset to the next page
+	offset += DefaultConfigOffset
+
 	// just re-use page data
-	renderErr := itemsTempl.Execute(c.Response().Writer, PageData{items, nil, nil})
-	// GalleryPage(items, nil, folderNames).Render(c.Request().Context(), c.Response())
+	renderErr := itemsTempl.Execute(c.Response().Writer, PageData{items, offset, nil, nil})
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
 		return c.String(echo.ErrInternalServerError.Code, "failed to render template")
@@ -151,7 +162,7 @@ func resolveThumbnailPath(thumbnail string) (string, error) {
 	}
 
 	if !strings.HasSuffix(thumbnail, "_thumbnail.png") {
-		// should already the full-resolution file.
+		// should already be the full-resolution file.
 		return thumbnail, nil
 	}
 
@@ -174,11 +185,11 @@ func resolveThumbnailPath(thumbnail string) (string, error) {
 
 type PageData struct {
 	Items      []*eagle.ListItem
+	Offset     int // real
 	AllTags    []string
 	AllFolders []string
 }
 
-// galleryTempl holds the parsed template; it is initialized once at startup.
 var galleryTempl *template.Template
 var itemsTempl *template.Template
 
@@ -189,14 +200,14 @@ var tmplFuncs = template.FuncMap{
 	"printf": fmt.Sprintf,
 }
 
+//go:embed gallery.gohtml
+var tmplFS embed.FS
+
 func main() {
-	templatePath := "./gallery.gohtml"
-	var err error
-	galleryTempl, err = template.New("gallery").Funcs(tmplFuncs).ParseFiles(templatePath)
-	itemsTempl, err = template.New("items").Funcs(tmplFuncs).ParseFiles(templatePath)
-	if err != nil {
-		panic(fmt.Errorf("failed to parse template %s: %w", templatePath, err))
-	}
+	// var err error
+	// Parse embedded templates instead of reading from disk
+	galleryTempl = template.Must(template.New("gallery").Funcs(tmplFuncs).ParseFS(tmplFS, "gallery.gohtml"))
+	itemsTempl = template.Must(template.New("items").Funcs(tmplFuncs).ParseFS(tmplFS, "gallery.gohtml"))
 
 	e := echo.New()
 	e.GET("/gallery", galleryHandler)
