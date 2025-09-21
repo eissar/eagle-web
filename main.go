@@ -57,8 +57,17 @@ func galleryHandler(c echo.Context) error {
 		folderNames[i] = f.Name
 	}
 
+	tags, fetchErr := eagle.TagList(BASE_URL)
+	if fetchErr != nil {
+		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
+	}
+	tagNames := make([]string, len(tags))
+	for i, t := range tags {
+		tagNames[i] = t.Name
+	}
+
 	// first draw
-	renderErr := galleryTempl.Execute(c.Response().Writer, PageData{items, 0, nil, folderNames})
+	renderErr := galleryTempl.Execute(c.Response().Writer, PageData{items, 0, tagNames, folderNames})
 	// GalleryPage(items, nil, folderNames).Render(c.Request().Context(), c.Response())
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
@@ -88,7 +97,7 @@ func itemsHandler(c echo.Context) error {
 		OrderBy: "CREATEDATE",
 		Keyword: c.QueryParam("keyword"),
 		Ext:     "",
-		Tags:    "",
+		Tags:    c.QueryParam("tags"),
 		Folders: "",
 	}
 

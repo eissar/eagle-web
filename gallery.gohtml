@@ -26,16 +26,21 @@
     <div class="masonry-item group" data-tags='{{lower (join .Tags ", ")}}'>
         <div class="relative overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
             <!-- style="aspect-ratio: {{.Width}} / {{.Height}};" -->
-            <a href="{{.URL}}" class="block p-4 w-full peer order-2" title="{{.Name}}">
-                <span class="font-bold text-white truncate">{{.Name}}</span>
+            <div class="block p-4 w-full peer order-2">
+                <a {{if .URL}}href="{{.URL}}" {{end}}><span class="font-bold text-white truncate">{{.Name}}</span></a>
+                </a>
                 <div class="flex flex-wrap gap-2 mt-2">
                     {{range .Tags}}
-                    <span class="bg-white/20 text-white text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm">
-                        {{.}}
-                    </span>
+                    <div class="tagWrapper" hx-get="/items?tags={{.}}" hx-trigger="click" hx-target="#photo-grid"
+                        hx-swap="outerHTML">
+                        <span
+                            class="bg-white/20 text-white text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm">
+                            {{.}}
+                        </span>
+                    </div>
                     {{end}}
                 </div>
-            </a>
+            </div>
             <img src='{{printf "/img/%s" .Id}}' alt="{{.Name}}" loading="lazy" width="{{.Width}}" height="{{.Height}}"
                 class="transition-transform duration-300 peer-hover:scale-105 order-1" />
         </div>
