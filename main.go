@@ -19,7 +19,8 @@ import (
 )
 
 const BASE_URL = "http://127.0.0.1:41595"
-const DefaultConfigOffset = 5
+
+var PageSize = 20 // 20 is default
 
 func thumbnailHandler(c echo.Context) error {
 	id := c.Param("itemId")
@@ -42,7 +43,7 @@ func thumbnailHandler(c echo.Context) error {
 }
 
 func galleryHandler(c echo.Context) error {
-	items, fetchErr := eagle.ItemList(BASE_URL, eagle.ItemListOptions{Limit: DefaultConfigOffset})
+	items, fetchErr := eagle.ItemList(BASE_URL, eagle.ItemListOptions{Limit: PageSize})
 	if fetchErr != nil {
 		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
 	}
@@ -57,7 +58,7 @@ func galleryHandler(c echo.Context) error {
 	}
 
 	// first draw
-	renderErr := galleryTempl.Execute(c.Response().Writer, PageData{items, DefaultConfigOffset, nil, folderNames})
+	renderErr := galleryTempl.Execute(c.Response().Writer, PageData{items, 0, nil, folderNames})
 	// GalleryPage(items, nil, folderNames).Render(c.Request().Context(), c.Response())
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
@@ -68,23 +69,35 @@ func galleryHandler(c echo.Context) error {
 
 func itemsHandler(c echo.Context) error {
 
-	offset, err := strconv.Atoi(c.QueryParam("offset"))
+	page, err := strconv.Atoi(c.QueryParam("offset")) // easier to read
 	if err != nil {
-		offset = 0
+		page = 0
 	}
 
-	items, fetchErr := eagle.ItemList(BASE_URL, eagle.ItemListOptions{
-		Limit:   DefaultConfigOffset,
-		Offset:  offset,
-		OrderBy: "",
+	// perPage will be statically set at 20.
+	// offset does not work like I assumed.
+
+	// perPage, err := strconv.Atoi(c.QueryParam("loadPerPage"))
+	// if err != nil {
+	// 	perPage = PageSize
+	// }
+
+	opts := eagle.ItemListOptions{
+		Limit:   PageSize,
+		Offset:  page,
+		OrderBy: "CREATEDATE",
 		Keyword: c.QueryParam("keyword"),
 		Ext:     "",
 		Tags:    "",
 		Folders: "",
-	})
+	}
+
+	items, fetchErr := eagle.ItemList(BASE_URL, opts)
 	if fetchErr != nil {
 		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
 	}
+
+	fmt.Printf("items: %v\n", items)
 
 	folders, fetchErr := eagle.FolderList(BASE_URL)
 	if fetchErr != nil {
@@ -95,12 +108,10 @@ func itemsHandler(c echo.Context) error {
 		folderNames[i] = f.Name
 	}
 
-	// for now, offset is ONLY used in retrieving the next page.
-	// we set the offset to the next page
-	offset += DefaultConfigOffset
+	page += 1
 
 	// just re-use page data
-	renderErr := itemsTempl.Execute(c.Response().Writer, PageData{items, offset, nil, nil})
+	renderErr := itemsTempl.Execute(c.Response().Writer, PageData{items, page, nil, nil})
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
 		return c.String(echo.ErrInternalServerError.Code, "failed to render template")
@@ -185,7 +196,7 @@ func resolveThumbnailPath(thumbnail string) (string, error) {
 
 type PageData struct {
 	Items      []*eagle.ListItem
-	Offset     int // real
+	Page       int // offset = Limit * Page
 	AllTags    []string
 	AllFolders []string
 }
