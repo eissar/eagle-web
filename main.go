@@ -97,8 +97,6 @@ func itemsHandler(c echo.Context) error {
 		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
 	}
 
-	fmt.Printf("items: %v\n", items)
-
 	folders, fetchErr := eagle.FolderList(BASE_URL)
 	if fetchErr != nil {
 		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
