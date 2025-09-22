@@ -1,56 +1,62 @@
 package main
 
 import (
-	// "encoding/json"
-
 	"embed"
 	"fmt"
+	"github.com/eissar/eagle-go"
+	"html/template"
+	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
-
-	"html/template"
-
-	"github.com/eissar/eagle-go"
-	"github.com/labstack/echo/v4"
-
-	_ "embed"
 )
 
 const BASE_URL = "http://127.0.0.1:41595"
 
 var PageSize = 20 // 20 is default
 
-func thumbnailHandler(c echo.Context) error {
-	id := c.Param("itemId")
-	resFlag := c.QueryParam("fq") // full quality
+// thumbnailHandler serves a thumbnail image for a given item ID.
+// The route is registered as "/img/" and the item ID is extracted from the URL path.
+func thumbnailHandler(w http.ResponseWriter, r *http.Request) {
+	// Expected path: /img/{itemId}
+	// Trim the leading "/img/" to get the item ID.
+	itemId := strings.TrimPrefix(r.URL.Path, "/img/")
+	if itemId == "" {
+		http.Error(w, "missing itemId", http.StatusBadRequest)
+		return
+	}
+	resFlag := r.URL.Query().Get("fq") // full quality flag
 
 	getThumbnail := func() (string, error) {
 		if resFlag == "true" {
-			return GetEagleThumbnailFullRes(id)
+			return GetEagleThumbnailFullRes(itemId)
 		}
-		return GetEagleThumbnail(id)
+		return GetEagleThumbnail(itemId)
 	}
 
 	thumbnail, err := getThumbnail()
 	if err != nil {
-		res := fmt.Sprintf("get thumbnail path=%s err=%s", c.Path(), err.Error())
-		return c.String(400, res)
+		res := fmt.Sprintf("get thumbnail path=%s err=%s", r.URL.Path, err.Error())
+		http.Error(w, res, http.StatusBadRequest)
+		return
 	}
-	// filepath exists.
-	return c.File(thumbnail)
+	// Serve the file directly.
+	http.ServeFile(w, r, thumbnail)
 }
 
-func galleryHandler(c echo.Context) error {
+// galleryHandler renders the gallery page with a list of items.
+func galleryHandler(w http.ResponseWriter, r *http.Request) {
 	items, fetchErr := eagle.ItemList(BASE_URL, eagle.ItemListOptions{Limit: PageSize})
 	if fetchErr != nil {
-		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
+		http.Error(w, fetchErr.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	folders, fetchErr := eagle.FolderList(BASE_URL)
 	if fetchErr != nil {
-		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
+		http.Error(w, fetchErr.Error(), http.StatusInternalServerError)
+		return
 	}
 	folderNames := make([]string, len(folders))
 	for i, f := range folders {
@@ -59,7 +65,8 @@ func galleryHandler(c echo.Context) error {
 
 	tags, fetchErr := eagle.TagList(BASE_URL)
 	if fetchErr != nil {
-		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
+		http.Error(w, fetchErr.Error(), http.StatusInternalServerError)
+		return
 	}
 	tagNames := make([]string, len(tags))
 	for i, t := range tags {
@@ -67,67 +74,60 @@ func galleryHandler(c echo.Context) error {
 	}
 
 	// first draw
-	renderErr := galleryTempl.Execute(c.Response().Writer, PageData{items, 0, tagNames, folderNames})
-	// GalleryPage(items, nil, folderNames).Render(c.Request().Context(), c.Response())
+	renderErr := galleryTempl.Execute(w, PageData{Items: items, Page: 0, AllTags: tagNames, AllFolders: folderNames})
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
-		return c.String(echo.ErrInternalServerError.Code, "failed to render template")
+		http.Error(w, "failed to render template", http.StatusInternalServerError)
+		return
 	}
-	return nil
 }
 
-func itemsHandler(c echo.Context) error {
-
-	page, err := strconv.Atoi(c.QueryParam("offset")) // easier to read
-	if err != nil {
+// itemsHandler returns a paginated list of items.
+func itemsHandler(w http.ResponseWriter, r *http.Request) {
+	pageStr := r.URL.Query().Get("offset")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 0 {
 		page = 0
 	}
-
-	// perPage will be statically set at 20.
-	// offset does not work like I assumed.
-
-	// perPage, err := strconv.Atoi(c.QueryParam("loadPerPage"))
-	// if err != nil {
-	// 	perPage = PageSize
-	// }
 
 	opts := eagle.ItemListOptions{
 		Limit:   PageSize,
 		Offset:  page,
 		OrderBy: "CREATEDATE",
-		Keyword: c.QueryParam("keyword"),
+		Keyword: r.URL.Query().Get("keyword"),
 		Ext:     "",
-		Tags:    c.QueryParam("tags"),
+		Tags:    r.URL.Query().Get("tags"),
 		Folders: "",
 	}
 
 	items, fetchErr := eagle.ItemList(BASE_URL, opts)
 	if fetchErr != nil {
-		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
+		http.Error(w, fetchErr.Error(), http.StatusInternalServerError)
+		return
 	}
 
+	// folders are needed for navigation UI.
 	folders, fetchErr := eagle.FolderList(BASE_URL)
 	if fetchErr != nil {
-		return c.String(echo.ErrInternalServerError.Code, fetchErr.Error())
+		http.Error(w, fetchErr.Error(), http.StatusInternalServerError)
+		return
 	}
 	folderNames := make([]string, len(folders))
 	for i, f := range folders {
 		folderNames[i] = f.Name
 	}
 
-	page += 1
+	page += 1 // increment for next page indicator
 
-	// just re-use page data
-	renderErr := itemsTempl.Execute(c.Response().Writer, PageData{items, page, nil, nil})
+	renderErr := itemsTempl.Execute(w, PageData{Items: items, Page: page, AllTags: nil, AllFolders: nil})
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
-		return c.String(echo.ErrInternalServerError.Code, "failed to render template")
+		http.Error(w, "failed to render template", http.StatusInternalServerError)
+		return
 	}
-	return nil
 }
 
-// on my device thumbnails ONLY end with _thumbnail.png or they do not exist.
-// this returns the full file path to the highest available resolution of the file.
+// GetEagleThumbnailFullRes returns the highest‑resolution thumbnail for the given item.
 func GetEagleThumbnailFullRes(itemId string) (string, error) {
 	thumbnail, err := GetEagleThumbnail(itemId)
 	if err != nil {
@@ -139,12 +139,10 @@ func GetEagleThumbnailFullRes(itemId string) (string, error) {
 		return thumbnail, fmt.Errorf("getEagleThumbnail: err=%w", err)
 	}
 
-	// TODO: we call os.Stat unnecessarily if we match full-res.
 	if _, err = os.Stat(thumbnail); err != nil {
 		return thumbnail, fmt.Errorf("getEagleThumbnail: err=%w", err)
 	}
 
-	//  TODO: fallback list all files other than metadata.json & _thumbnail.png?
 	return thumbnail, nil
 }
 
@@ -168,11 +166,7 @@ func GetEagleThumbnail(itemId string) (string, error) {
 
 var allowed_filetypes = []string{".jpeg", ".jpg", ".png", ".gif", ".svg", ".webp", ".avif"}
 
-// tries to find the actual filepath from the response
-// of request api/item/thumbnail.
-// also calls `url.PathUnescape` on the url.
-// then checks if there are
-// any files matching `allowed_filetypes`.
+// resolveThumbnailPath attempts to locate the full‑resolution version of a thumbnail.
 func resolveThumbnailPath(thumbnail string) (string, error) {
 	thumbnail, err := url.PathUnescape(thumbnail)
 	if err != nil {
@@ -180,25 +174,21 @@ func resolveThumbnailPath(thumbnail string) (string, error) {
 	}
 
 	if !strings.HasSuffix(thumbnail, "_thumbnail.png") {
-		// should already be the full-resolution file.
+		// Already a full‑resolution file.
 		return thumbnail, nil
 	}
 
-	// try to find the full-res file.
+	// Strip the "_thumbnail.png" suffix and try known extensions.
 	thumbnailRoot := strings.TrimSuffix(thumbnail, "_thumbnail.png")
-
 	for _, typ := range allowed_filetypes {
-		joinedPath := thumbnailRoot + typ
-		if _, err := os.Stat(joinedPath); err == nil {
-			// if no error, file exists; return that file.
-			return joinedPath, nil
+		candidate := thumbnailRoot + typ
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate, nil
 		}
 	}
 
+	// Fallback to the original thumbnail path.
 	return thumbnail, nil
-	// TODO: create NoFullResolutionErr
-	//
-	// fmt.Errorf("resolvethumb: no full-res file at path=%s, err=%w", thumbnail)
 }
 
 type PageData struct {
@@ -222,16 +212,18 @@ var tmplFuncs = template.FuncMap{
 var tmplFS embed.FS
 
 func main() {
-	// var err error
-	// Parse embedded templates instead of reading from disk
+	// Parse embedded templates.
 	galleryTempl = template.Must(template.New("gallery").Funcs(tmplFuncs).ParseFS(tmplFS, "gallery.gohtml"))
 	itemsTempl = template.Must(template.New("items").Funcs(tmplFuncs).ParseFS(tmplFS, "gallery.gohtml"))
 
-	e := echo.New()
-	e.GET("/gallery", galleryHandler)
-	e.GET("/img/:itemId", thumbnailHandler)
-	e.GET("/items", itemsHandler)
+	// Register routes using the net/http default ServeMux.
+	http.HandleFunc("/gallery", galleryHandler)
+	http.HandleFunc("/img/", thumbnailHandler) // trailing slash to capture itemId
+	http.HandleFunc("/items", itemsHandler)
 
 	addr := ":8081"
-	e.Logger.Fatal(e.Start(addr))
+	fmt.Printf("Starting server at %s\n", addr)
+	if err := http.ListenAndServe(addr, nil); err != nil {
+		fmt.Printf("Server failed: %v\n", err)
+	}
 }
