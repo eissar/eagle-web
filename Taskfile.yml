@@ -1,0 +1,24 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+  SHELL: '{{if eq .OS "Windows_NT"}}powershell{{end}}'
+
+tasks:
+  build:
+    cmds:
+      - '{{.SHELL}} rm -r ./eagle-web.exe'
+      - 'go build -ldflags="-s -w" {{.CLI_ARGS}}'
+      - 'upx eagle-web.exe'
+      # -  upx --brute eagle-web.exe
+  dev:
+    cmds:
+      - '{{.SHELL}} rm -r ./eagle-web.exe'
+      - 'go build {{.CLI_ARGS}}'
+      - 'upx eagle-web.exe'
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
