@@ -46,10 +46,11 @@
         </div>
     </div>
     {{end}}
+    <!-- always offset=currpage + 1 -->
     <!-- hx-trigger="revealed" -->
     <div id="load-more-trigger" class="flex justify-center my-4"
-        hx-get="/items?offset={{if .Page}}{{.Page}}{{else}}0{{end}}" hx-target="#load-more-trigger" hx-swap="outerHTML"
-        hx-include="#search-input,#load-per-page" hx-select="#photo-grid > *">
+        hx-get="/items?offset={{if .Page}}{{add .Page 1}}{{else}}1{{end}}" hx-target="#load-more-trigger"
+        hx-swap="outerHTML" hx-include="#search-input,#load-per-page" hx-select="#photo-grid > *">
         <button class="btn">Load More</button>
     </div>
 </div>

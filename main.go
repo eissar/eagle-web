@@ -117,7 +117,7 @@ func itemsHandler(w http.ResponseWriter, r *http.Request) {
 		folderNames[i] = f.Name
 	}
 
-	page += 1 // increment for next page indicator
+	// page += 1 // increment for next page indicator // instead, increment in the template.
 
 	renderErr := itemsTempl.Execute(w, PageData{Items: items, Page: page, AllTags: nil, AllFolders: nil})
 	if renderErr != nil {
@@ -206,6 +206,7 @@ var tmplFuncs = template.FuncMap{
 	"join":   strings.Join,
 	"lower":  strings.ToLower,
 	"printf": fmt.Sprintf,
+	"add":    func(a, b int) int { return a + b },
 }
 
 //go:embed gallery.gohtml
