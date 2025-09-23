@@ -55,7 +55,16 @@ func thumbnailHandler(w http.ResponseWriter, r *http.Request) {
 
 // galleryHandler renders the gallery page with a list of items.
 func galleryHandler(w http.ResponseWriter, r *http.Request) {
-	items, fetchErr := eagle.ItemList(BASE_URL, eagle.ItemListOptions{Limit: PageSize})
+	filter := eagle.ItemListOptions{
+		Limit:   PageSize,
+		Offset:  0,
+		OrderBy: "CREATEDATE",
+		Keyword: r.URL.Query().Get("keyword"),
+		Ext:     "",
+		Tags:    r.URL.Query().Get("tags"),
+		Folders: "",
+	}
+	items, fetchErr := eagle.ItemList(BASE_URL, filter)
 	if fetchErr != nil {
 		http.Error(w, fetchErr.Error(), http.StatusInternalServerError)
 		return
@@ -82,7 +91,7 @@ func galleryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// first draw
-	renderErr := galleryTempl.Execute(w, PageData{Items: items, Page: 0, AllTags: tagNames, AllFolders: folderNames})
+	renderErr := galleryTempl.Execute(w, GalleryData{Items: items, Page: 0, AllTags: tagNames, AllFolders: folderNames, Filter: filter})
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
 		http.Error(w, "failed to render template", http.StatusInternalServerError)
@@ -98,7 +107,7 @@ func itemsHandler(w http.ResponseWriter, r *http.Request) {
 		page = 0
 	}
 
-	opts := eagle.ItemListOptions{
+	filter := eagle.ItemListOptions{
 		Limit:   PageSize,
 		Offset:  page,
 		OrderBy: "CREATEDATE",
@@ -108,7 +117,7 @@ func itemsHandler(w http.ResponseWriter, r *http.Request) {
 		Folders: "",
 	}
 
-	items, fetchErr := eagle.ItemList(BASE_URL, opts)
+	items, fetchErr := eagle.ItemList(BASE_URL, filter)
 	if fetchErr != nil {
 		http.Error(w, fetchErr.Error(), http.StatusInternalServerError)
 		return
@@ -127,7 +136,7 @@ func itemsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// page += 1 // increment for next page indicator // instead, increment in the template.
 
-	renderErr := itemsTempl.Execute(w, PageData{Items: items, Page: page, AllTags: nil, AllFolders: nil})
+	renderErr := itemsTempl.Execute(w, GalleryData{Items: items, Page: page, AllTags: nil, AllFolders: nil, Filter: filter})
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
 		http.Error(w, "failed to render template", http.StatusInternalServerError)
