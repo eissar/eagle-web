@@ -1,3 +1,59 @@
+{{define "info"}}
+<div class="relative inline-block">
+    <details class="relative">
+        <summary id="info-button" aria-haspopup="true"
+            class="p-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer list-none hover-surface">
+            <img src="https://unpkg.com/heroicons@2.0.13/24/outline/information-circle.svg" class="h-5 w-5"
+                style="filter: var(--icon-filter);" alt="Info" />
+        </summary>
+
+        <!-- Pop‑out container -->
+        <div class="absolute left-0 mt-2 w-96 rounded shadow-lg z-10 overflow-auto dropdown-container max-h-80"
+            style="-ms-overflow-style:none; scrollbar-width:none;">
+            <table class="min-w-full text-sm" style="border-collapse: separate; border-spacing: 0;">
+                <tbody style="background-color: var(--bg-surface);">
+
+                    <tr style="border-bottom: 1px solid var(--border-color-light);">
+                        <td class="px-3 py-2 font-medium align-top" style="color: var(--text-secondary);">Tags</td>
+                        <td class="px-3 py-2" style="color: var(--text-primary);">
+                            <div class="flex flex-wrap gap-2 max-w-72 max-h-24 overflow-y-auto"
+                                style="-ms-overflow-style:none; scrollbar-width:none;">
+                                {{range .AllTags}}
+                                <span
+                                    class="flex items-center px-3 py-1 rounded-full whitespace-nowrap tag-badge">{{.}}</span>
+                                {{end}}
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr style="border-bottom: 1px solid var(--border-color-light);">
+                        <td class="px-3 py-2 font-medium align-top" style="color: var(--text-secondary);">Folders</td>
+                        <td class="px-3 py-2" style="color: var(--text-primary);">
+                            <div class="flex flex-wrap gap-2 max-w-72 max-h-24 overflow-y-auto"
+                                style="-ms-overflow-style:none; scrollbar-width:none;">
+                                {{range .AllFolders}}
+                                <span
+                                    class="flex items-center px-3 py-1 rounded-full whitespace-nowrap tag-badge">{{.}}</span>
+                                {{end}}
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr style="border-bottom: 1px solid var(--border-color-light);">
+                        <td class="px-3 py-2 font-medium" style="color: var(--text-secondary);">Created</td>
+                        <td class="px-3 py-2" style="color: var(--text-primary);">2025‑09‑22</td>
+                    </tr>
+                    <tr>
+                        <td class="px-3 py-2 font-medium" style="color: var(--text-secondary);">Version</td>
+                        <td class="px-3 py-2" style="color: var(--text-primary);">1.0.0</td>
+                    </tr>
+                    <!-- Add more rows like the ones above for additional metadata -->
+                </tbody>
+            </table>
+        </div>
+    </details>
+</div>
+{{end}}
 {{define "options"}}
 <div class="relative inline-block">
     <details class="relative">
@@ -34,8 +90,9 @@
                 <div class="flex flex-wrap gap-2 mt-2">
                     {{range .Tags}}
                     <div class="tagWrapper" hx-get="/items?tags={{.}}" hx-trigger="click" hx-target="#photo-grid"
-                        hx-swap="outerHTML">
-                        <span class="text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm">
+                        hx-swap="outerHTML" hx-replace-url="gallery?tags={{.}}">
+
+                        <span class="text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm tag-badge">
                             {{.}}
                         </span>
                     </div>
@@ -47,13 +104,16 @@
         </div>
     </div>
     {{end}}
-    <!-- always offset=currpage + 1 -->
-    <!-- hx-trigger="revealed" -->
+    <!-- <div>{{.Filter}}</div> -->
+    {{ if ge (len .Items) .Filter.Limit }}
     <div id="load-more-trigger" class="flex justify-center my-4"
-        hx-get="/items?offset={{if .Page}}{{add .Page 1}}{{else}}1{{end}}" hx-target="#load-more-trigger"
-        hx-swap="outerHTML" hx-include="#search-input,#load-per-page" hx-select="#photo-grid > *">
+        hx-get="/items?offset={{if .Page}}{{add .Page 1}}{{else}}1{{end}}&keyword={{.Filter.Keyword}}&tags={{.Filter.Tags}}"
+        hx-target="#load-more-trigger" hx-swap="outerHTML" hx-include="#search-input,#load-per-page"
+        hx-select="#photo-grid > *">
         <button class="px-6 py-2 rounded-lg font-medium interactive-button">Load More</button>
     </div>
+    {{ end }}
+
 </div>
 {{end}}
 {{define "header"}}
@@ -62,43 +122,35 @@
     <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
             {{template "options" .}}
+            {{template "info" .}}
 
+            <!-- Dark Mode Toggle Switch -->
+            <div class="dark-mode-switcher">
+                <label for="dark-mode-toggle" class="dark-mode-label">
+                    <span class="dark-mode-slider"></span>
+                    <span class="sr-only">Toggle dark mode</span>
+                </label>
+            </div>
 
             <div class="flex items-center gap-4 text-sm flex-1 min-w-0 overflow-x-auto">
-                <span class="font-medium text-slate-500">Tags:</span>
-                <div class="flex gap-2 overflow-x-auto whitespace-nowrap"
-                    style="-ms-overflow-style:none; scrollbar-width:none;">
-                    {{range .AllTags}}
-                    <span
-                        class="flex items-center bg-slate-100 text-slate-600 px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0">{{.}}</span>
-                    {{end}}
-                </div>
-                <span class="font-medium text-slate-500">Folders:</span>
-                <div class="flex gap-2 overflow-x-auto whitespace-nowrap"
-                    style="-ms-overflow-style:none; scrollbar-width:none;">
-                    {{range .AllFolders}}
-                    <span
-                        class="flex items-center bg-slate-100 text-slate-600 px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0">{{.}}</span>
-                    {{end}}
-                </div>
-            </div>
 
-            <div class="relative w-full max-w-xs flex-shrink-0">
-                <!-- Search Icon -->
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-4 w-4" style="color: var(--text-muted); filter: var(--icon-filter);" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
+                <div class="relative w-full max-w-xs flex-shrink-0">
+                    <!-- Search Icon -->
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4" style="color: var(--text-muted); filter: var(--icon-filter);" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input id="search-input" type="search" name="keyword" placeholder="keyword search" hx-get="/items"
+                        hx-trigger="keyup changed delay:500ms" hx-target="#photo-grid" hx-swap="outerHTML"
+                        hx-indicator=".htmx-indicator"
+                        class="block w-full border border-transparent rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent input-field" />
+
                 </div>
-                <input id="search-input" type="search" name="keyword" placeholder="keyword search" hx-get="/items"
-                    hx-trigger="keyup changed delay:500ms" hx-target="#photo-grid" hx-swap="outerHTML"
-                    hx-indicator=".htmx-indicator"
-                    class="block w-full border border-transparent rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent input-field" />
             </div>
         </div>
-    </div>
 </header>
 {{end}}
 
@@ -357,11 +409,177 @@
         .input-field:focus {
             background-color: var(--bg-input-focus);
         }
+
+        /* Tag Badge Styling */
+        .tag-badge {
+            cursor: pointer;
+            background-color: var(--bg-surface-hover);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color-light);
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .tag-badge:hover {
+            background-color: var(--bg-surface);
+            color: var(--text-primary);
+        }
+
+        /* Dark Mode Switcher Styles */
+        .dark-mode-switcher {
+            display: flex;
+            align-items: center;
+            margin: 0 1rem;
+        }
+
+        .dark-mode-checkbox {
+            opacity: 0;
+            position: absolute;
+            width: 0;
+            height: 0;
+        }
+
+        .dark-mode-label {
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+            background-color: var(--border-color);
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border: 2px solid var(--border-color-light);
+        }
+
+        .dark-mode-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--bg-surface);
+            border-radius: 50%;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .dark-mode-slider::before {
+            content: '☀️';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            transition: opacity 0.3s ease;
+        }
+
+        .dark-mode-checkbox:checked+.dark-mode-label {
+            background-color: #4f46e5;
+            border-color: #4338ca;
+        }
+
+        .dark-mode-checkbox:checked+.dark-mode-label .dark-mode-slider {
+            transform: translateX(24px);
+        }
+
+        .dark-mode-checkbox:checked+.dark-mode-label .dark-mode-slider::before {
+            content: '🌙';
+        }
+
+        .dark-mode-label:hover {
+            background-color: var(--bg-surface-hover);
+        }
+
+        .dark-mode-checkbox:checked+.dark-mode-label:hover {
+            background-color: #3730a3;
+        }
+
+        /* Screen reader only class */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Enhanced Dark Mode Logic */
+        .dark-mode-checkbox:checked~body,
+        .dark-mode-checkbox:checked~* {
+            --bg-primary: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-surface-hover: #334155;
+            --bg-header: rgba(30, 41, 59, 0.8);
+            --bg-overlay: rgba(0, 0, 0, 0.4);
+            --bg-input: #334155;
+            --bg-input-focus: #475569;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #475569;
+            --border-color-light: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --shadow-color-hover: rgba(0, 0, 0, 0.5);
+            --icon-filter: brightness(0) saturate(100%) invert(64%) sepia(11%) saturate(1015%) hue-rotate(174deg) brightness(95%) contrast(87%);
+        }
+
+        /* Override system preference when toggle is used */
+        .dark-mode-checkbox:checked~body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        /* CSS-only dark mode using :has() selector (modern browsers) */
+        html:has(.dark-mode-checkbox:checked) {
+            --bg-primary: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-surface-hover: #334155;
+            --bg-header: rgba(30, 41, 59, 0.8);
+            --bg-overlay: rgba(0, 0, 0, 0.4);
+            --bg-input: #334155;
+            --bg-input-focus: #475569;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #475569;
+            --border-color-light: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --shadow-color-hover: rgba(0, 0, 0, 0.5);
+            --icon-filter: brightness(0) saturate(100%) invert(64%) sepia(11%) saturate(1015%) hue-rotate(174deg) brightness(95%) contrast(87%);
+        }
+
+        /* Enhanced tag badge styling for dark mode */
+        html:has(.dark-mode-checkbox:checked) .tag-badge {
+            background-color: var(--bg-surface);
+            color: var(--text-secondary);
+            border-color: var(--border-color);
+        }
+
+        html:has(.dark-mode-checkbox:checked) .tag-badge:hover {
+            background-color: var(--bg-surface-hover);
+            color: var(--text-primary);
+            border-color: var(--border-color-light);
+        }
+
+        /* Fallback for browsers without :has() support */
+        @supports not selector(:has(*)) {
+            .dark-mode-checkbox:checked {
+                /* This will require a small amount of JavaScript for full functionality */
+                /* But the toggle itself will still work visually */
+            }
+        }
     </style>
 </head>
 
 <body class="antialiased" style="color: var(--text-primary);">
+    <!-- Dark Mode Toggle Checkbox (hidden but affects entire page) -->
+    <input type="checkbox" id="dark-mode-toggle" class="dark-mode-checkbox">
+
     {{template "header" .}}
+
     <main class="max-w-screen-2xl mx-auto p-5 sm:p-6 lg:p-8">
         {{template "items" .}}
         <div class="htmx-indicator" style="color: var(--text-secondary);">Searching...</div>
