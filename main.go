@@ -16,6 +16,14 @@ const BASE_URL = "http://127.0.0.1:41595"
 
 var PageSize = 20 // 20 is default
 
+type GalleryData struct {
+	Items      []*eagle.ListItem
+	Page       int // offset = Limit * Page
+	AllTags    []string
+	AllFolders []string
+	Filter     eagle.ItemListOptions
+}
+
 // thumbnailHandler serves a thumbnail image for a given item ID.
 // The route is registered as "/img/" and the item ID is extracted from the URL path.
 func thumbnailHandler(w http.ResponseWriter, r *http.Request) {
@@ -189,13 +197,6 @@ func resolveThumbnailPath(thumbnail string) (string, error) {
 
 	// Fallback to the original thumbnail path.
 	return thumbnail, nil
-}
-
-type PageData struct {
-	Items      []*eagle.ListItem
-	Page       int // offset = Limit * Page
-	AllTags    []string
-	AllFolders []string
 }
 
 var galleryTempl *template.Template
