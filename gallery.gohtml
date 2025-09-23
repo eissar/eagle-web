@@ -2,15 +2,17 @@
 <div class="relative inline-block">
     <details class="relative">
         <summary id="options-gear" aria-haspopup="true"
-            class="p-2 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer list-none">
-            <img src="https://unpkg.com/heroicons@2.0.13/24/outline/cog.svg" class="h-5 w-5 text-slate-500"
-                alt="Settings" />
+            class="p-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer list-none hover-surface">
+            <img src="https://unpkg.com/heroicons@2.0.13/24/outline/cog.svg" class="h-5 w-5"
+                style="filter: var(--icon-filter);" alt="Settings" />
         </summary>
-        <div class="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-10">
+        <div class="absolute left-0 mt-2 w-48 rounded shadow-lg z-10 dropdown-container">
             <div class="p-2">
-                <label for="load-per-page" class="block text-sm font-medium text-slate-500 mb-1">Load per page:</label>
+                <label for="load-per-page" class="block text-sm font-medium mb-1"
+                    style="color: var(--text-secondary);">Load per page:</label>
                 <select id="load-per-page" name="loadPerPage"
-                    class="w-full bg-white border border-gray-300 rounded-md p-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    class="w-full rounded-md p-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    style="background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary);">
                     <option value="20">20</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
@@ -24,17 +26,16 @@
 <div id="photo-grid" class="masonry-grid">
     {{range .Items}}
     <div class="masonry-item group" data-tags='{{lower (join .Tags ", ")}}'>
-        <div class="relative overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
+        <div class="relative overflow-hidden flex flex-col rounded-lg hover-card">
             <!-- style="aspect-ratio: {{.Width}} / {{.Height}};" -->
             <div class="block p-4 w-full peer order-2">
-                <a {{if .URL}}href="{{.URL}}" {{end}}><span class="font-bold text-white truncate">{{.Name}}</span></a>
+                <a {{if .URL}}href="{{.URL}}" {{end}}><span class="font-medium truncate">{{.Name}}</span></a>
                 </a>
                 <div class="flex flex-wrap gap-2 mt-2">
                     {{range .Tags}}
                     <div class="tagWrapper" hx-get="/items?tags={{.}}" hx-trigger="click" hx-target="#photo-grid"
                         hx-swap="outerHTML">
-                        <span
-                            class="bg-white/20 text-white text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm">
+                        <span class="text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm">
                             {{.}}
                         </span>
                     </div>
@@ -51,12 +52,13 @@
     <div id="load-more-trigger" class="flex justify-center my-4"
         hx-get="/items?offset={{if .Page}}{{add .Page 1}}{{else}}1{{end}}" hx-target="#load-more-trigger"
         hx-swap="outerHTML" hx-include="#search-input,#load-per-page" hx-select="#photo-grid > *">
-        <button class="btn">Load More</button>
+        <button class="px-6 py-2 rounded-lg font-medium interactive-button">Load More</button>
     </div>
 </div>
 {{end}}
 {{define "header"}}
-<header id="toolbar" class="sticky top-0 z-20 bg-white/80 backdrop-blur-lg shadow-sm">
+<header id="toolbar" class="sticky top-0 z-20 backdrop-blur-lg shadow-sm"
+    style="background-color: var(--bg-header); box-shadow: 0 1px 3px 0 var(--shadow-color), 0 1px 2px 0 var(--shadow-color);">
     <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
             {{template "options" .}}
@@ -82,10 +84,18 @@
             </div>
 
             <div class="relative w-full max-w-xs flex-shrink-0">
+                <!-- Search Icon -->
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-4 w-4" style="color: var(--text-muted); filter: var(--icon-filter);" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
                 <input id="search-input" type="search" name="keyword" placeholder="keyword search" hx-get="/items"
                     hx-trigger="keyup changed delay:500ms" hx-target="#photo-grid" hx-swap="outerHTML"
                     hx-indicator=".htmx-indicator"
-                    class="block w-full bg-slate-100 border border-transparent rounded-lg py-2 pl-10 pr-4 text-slate-700 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
+                    class="block w-full border border-transparent rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent input-field" />
             </div>
         </div>
     </div>
@@ -106,9 +116,98 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
+        /* CSS Custom Properties for Theme Colors */
+        :root {
+            --bg-primary: #f0f2f5;
+            --bg-surface: #ffffff;
+            --bg-surface-hover: #f8fafc;
+            --bg-header: rgba(255, 255, 255, 0.8);
+            --bg-overlay: rgba(0, 0, 0, 0.6);
+            --bg-input: #f8fafc;
+            --bg-input-focus: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #475569;
+            --border-color: #cbd5e1;
+            --border-color-light: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --shadow-color-hover: rgba(0, 0, 0, 0.15);
+            --icon-filter: brightness(0) saturate(100%) invert(20%) sepia(15%) saturate(1200%) hue-rotate(174deg) brightness(90%) contrast(95%);
+        }
+
+        /* Light mode specific improvements */
+        @media (prefers-color-scheme: light) {
+
+            /* Override text colors for maximum legibility on white backgrounds */
+            :root {
+                --text-primary: #111827;
+                --text-secondary: #374151;
+                --text-muted: #6b7280;
+            }
+
+            /* Ensure better text contrast and readability */
+            .font-medium {
+                font-weight: 500;
+            }
+
+            .font-semibold {
+                font-weight: 600;
+            }
+
+            .font-bold {
+                font-weight: 700;
+            }
+
+            /* Improve input field visibility */
+            input[type="search"] {
+                border: 1px solid var(--border-color) !important;
+            }
+
+            input[type="search"]:focus {
+                border-color: #6366f1 !important;
+                box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+            }
+
+            /* Better select styling */
+            select {
+                border: 1px solid var(--border-color) !important;
+            }
+
+            /* Improve card borders and shadows */
+            .masonry-item>div {
+                border: 1px solid var(--border-color-light);
+            }
+        }
+
+        /* Dark Mode Overrides */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0f172a;
+                --bg-surface: #1e293b;
+                --bg-surface-hover: #334155;
+                --bg-header: rgba(30, 41, 59, 0.8);
+                --bg-overlay: rgba(0, 0, 0, 0.4);
+                --bg-input: #334155;
+                --bg-input-focus: #475569;
+                --text-primary: #f1f5f9;
+                --text-secondary: #cbd5e1;
+                --text-muted: #94a3b8;
+                --border-color: #475569;
+                --border-color-light: #334155;
+                --shadow-color: rgba(0, 0, 0, 0.3);
+                --shadow-color-hover: rgba(0, 0, 0, 0.5);
+                --icon-filter: brightness(0) saturate(100%) invert(64%) sepia(11%) saturate(1015%) hue-rotate(174deg) brightness(95%) contrast(87%);
+            }
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-weight: 400;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .masonry-grid {
@@ -167,17 +266,108 @@
             column-span: all;
             /* forces the element to span the full width of the masonry columns */
         }
+
+        /* Additional dark mode improvements */
+        @media (prefers-color-scheme: dark) {
+
+            /* Improve form element appearance in dark mode */
+            select option {
+                background-color: var(--bg-surface);
+                color: var(--text-primary);
+            }
+
+            /* Ensure proper placeholder styling */
+            input::placeholder {
+                color: var(--text-muted);
+                opacity: 1;
+                font-weight: 400;
+            }
+
+            /* Light mode specific placeholder improvements */
+            @media (prefers-color-scheme: light) {
+                input::placeholder {
+                    color: var(--text-muted);
+                    opacity: 0.8;
+                }
+            }
+
+            /* Improve scrollbar appearance in dark mode */
+            ::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: var(--bg-surface);
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: var(--border-color);
+                border-radius: 4px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--text-muted);
+            }
+        }
+
+        /* Reusable Component Classes */
+        .hover-surface {
+            background-color: transparent;
+            transition: background-color 0.2s;
+        }
+
+        .hover-surface:hover {
+            background-color: var(--bg-surface-hover);
+        }
+
+        .hover-card {
+            background-color: var(--bg-surface);
+            box-shadow: 0 4px 6px -1px var(--shadow-color), 0 2px 4px -1px var(--shadow-color);
+            transition: box-shadow 0.3s;
+        }
+
+        .hover-card:hover {
+            box-shadow: 0 20px 25px -5px var(--shadow-color-hover), 0 10px 10px -5px var(--shadow-color);
+        }
+
+        .dropdown-container {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 15px -3px var(--shadow-color), 0 4px 6px -2px var(--shadow-color);
+        }
+
+        .interactive-button {
+            background-color: var(--bg-surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+
+        .interactive-button:hover {
+            background-color: var(--bg-surface-hover);
+        }
+
+        .input-field {
+            background-color: var(--bg-input);
+            color: var(--text-primary);
+            transition: background-color 0.2s;
+        }
+
+        .input-field:focus {
+            background-color: var(--bg-input-focus);
+        }
     </style>
 </head>
 
-<body class="antialiased text-slate-700">
+<body class="antialiased" style="color: var(--text-primary);">
     {{template "header" .}}
     <main class="max-w-screen-2xl mx-auto p-5 sm:p-6 lg:p-8">
         {{template "items" .}}
-        <div class="htmx-indicator">Searching...</div>
+        <div class="htmx-indicator" style="color: var(--text-secondary);">Searching...</div>
         <div id="no-results" class="hidden text-center py-20">
-            <h2 class="text-2xl font-semibold text-slate-600">No items found</h2>
-            <p class="text-slate-500 mt-2">Try a different search term.</p>
+            <h2 class="text-2xl font-semibold" style="color: var(--text-secondary);">No items found</h2>
+            <p class="mt-2" style="color: var(--text-muted);">Try a different search term.</p>
         </div>
     </main>
 </body>
