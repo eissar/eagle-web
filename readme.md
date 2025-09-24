@@ -33,7 +33,7 @@ https://github.com/user-attachments/assets/ffc9e546-b807-4acc-8813-2854cb7a3f15
 - **Pagination**: Load more items as you scroll
 
 Note: I don't foresee it being a problem, but currently, we load
-the <library>/images/<id>/*_thumbnail.png without any checks for size.
+the [library]/images/[id]/*_thumbnail.png without any checks for size.
 Let me know your experience on data/metered networks if you have any problems
 by creating an issue
 
