@@ -82,8 +82,11 @@
                             <div class="flex flex-wrap gap-2 max-w-72 max-h-24 overflow-y-auto"
                                 style="-ms-overflow-style:none; scrollbar-width:none;">
                                 {{range .AllTags}}
-                                <span
-                                    class="flex items-center px-3 py-1 rounded-full whitespace-nowrap tag-badge">{{.}}</span>
+                                <div hx-get="/items?tags={{.}}" hx-trigger="click" hx-target="#photo-grid"
+                                    hx-swap="outerHTML" hx-replace-url="gallery?tags={{.}}">
+                                    <span
+                                        class="flex items-center px-3 py-1 rounded-full whitespace-nowrap tag-badge">{{.}}</span>
+                                </div>
                                 {{end}}
                             </div>
                         </td>
@@ -95,8 +98,12 @@
                             <div class="flex flex-wrap gap-2 max-w-72 max-h-24 overflow-y-auto"
                                 style="-ms-overflow-style:none; scrollbar-width:none;">
                                 {{range .AllFolders}}
+
+                                <!-- <div hx-get="/items?folders={{.}}" hx-trigger="click" hx-target="#photo-grid" -->
+                                <!-- hx-swap="outerHTML" hx-replace-url="gallery?folders={{.}}"> -->
                                 <span
                                     class="flex items-center px-3 py-1 rounded-full whitespace-nowrap tag-badge">{{.}}</span>
+                                <!-- </div> -->
                                 {{end}}
                             </div>
                         </td>
