@@ -30,7 +30,9 @@
         <div class="absolute left-0 mt-2 w-96 rounded shadow-lg z-10 overflow-auto dropdown-container max-h-80"
             style="-ms-overflow-style:none; scrollbar-width:none; background-color: var(--bg-surface);">
             <form id="upload-form" hx-post="http://localhost:8081/upload" hx-encoding="multipart/form-data"
-                hx-target="#upload-result" hx-headers='{"Content-Disposition": "form-data"}' class="p-4">
+                hx-target="#upload-result" hx-headers='{"Content-Disposition": "form-data"}'
+                hx-on::after-request="if(event.detail.successful) this.reset()" class="p-4">
+
                 <!-- hx-on::after-request=""> -->
                 <input type="file" name="file" id="file-input" class="block w-full text-sm text-gray-500
             file:mr-4 file:py-2 file:px-4
@@ -39,22 +41,9 @@
             file:bg-indigo-50 file:text-indigo-700
             hover:file:bg-indigo-100 mb-4" required>
                 <button type="submit" id="submit-button"
-                    class="w-full py-2 px-4 rounded-md bg-indigo-600 text-white font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    onclick="document.querySelector('#upload-form').reset();">
-                    Upload
+                    class="w-full py-2 px-4 rounded-md bg-indigo-600 text-white font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Upload (PNG only)
                 </button>
-                <!-- <style> -->
-                <!--     #file-input:valid~#submit-button { -->
-                <!--         background-color: rgb(79, 70, 229); -->
-                <!--         opacity: 1; -->
-                <!--         cursor: pointer; -->
-                <!--         pointer-events: auto; -->
-                <!--     } -->
-                <!---->
-                <!--     #file-input:valid~#submit-button:hover { -->
-                <!--         background-color: rgb(67, 56, 202); -->
-                <!--     } -->
-                <!-- </style> -->
             </form>
             <div id="upload-result" class="p-4 pt-0"></div>
         </div>
@@ -466,7 +455,7 @@
 
         /* Reusable Component Classes */
         .hover-surface {
-            background-color: transparent;
+            background-color: ;
             transition: background-color 0.2s;
         }
 
