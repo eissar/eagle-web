@@ -88,11 +88,11 @@
                                 style="-ms-overflow-style:none; scrollbar-width:none;">
                                 {{range .AllFolders}}
 
-                                <!-- <div hx-get="/items?folders={{.}}" hx-trigger="click" hx-target="#photo-grid" -->
-                                <!-- hx-swap="outerHTML" hx-replace-url="gallery?folders={{.}}"> -->
-                                <span
-                                    class="flex items-center px-3 py-1 rounded-full whitespace-nowrap tag-badge">{{.}}</span>
-                                <!-- </div> -->
+                                <div hx-get="/items?folders={{.ID}}" hx-trigger="click" hx-target="#photo-grid"
+                                    hx-swap="outerHTML" hx-replace-url="gallery?folders={{.ID}}">
+                                    <span
+                                        class="flex items-center px-3 py-1 rounded-full whitespace-nowrap tag-badge">{{.Name}}</span>
+                                </div>
                                 {{end}}
                             </div>
                         </td>

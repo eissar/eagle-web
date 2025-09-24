@@ -23,7 +23,7 @@ type GalleryData struct {
 	Items      []*eagle.ListItem
 	Page       int // offset = Limit * Page
 	AllTags    []string
-	AllFolders []string
+	AllFolders []eagle.FolderDetailOverview
 	Filter     eagle.ItemListOptions
 }
 
@@ -185,10 +185,6 @@ func galleryHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fetchErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	folderNames := make([]string, len(folders))
-	for i, f := range folders {
-		folderNames[i] = f.Name
-	}
 
 	tags, fetchErr := eagle.TagList(BASE_URL)
 	if fetchErr != nil {
@@ -201,7 +197,7 @@ func galleryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// first draw
-	renderErr := galleryTempl.Execute(w, GalleryData{Items: items, Page: 0, AllTags: tagNames, AllFolders: folderNames, Filter: filter})
+	renderErr := galleryTempl.Execute(w, GalleryData{Items: items, Page: 0, AllTags: tagNames, AllFolders: folders, Filter: filter})
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
 		http.Error(w, "failed to render template", http.StatusInternalServerError)
