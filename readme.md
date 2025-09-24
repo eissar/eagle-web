@@ -18,7 +18,7 @@ https://github.com/user-attachments/assets/ffc9e546-b807-4acc-8813-2854cb7a3f15
 - **Real-time Search**: Find images with debounced search
 - **Tag Filtering**: Click any tag to filter your collection
 - **Folder Filtering**: Click any folder to filter your collection
-- **Shareable Links**: URLs remember your filters, making it easy to bookmark or possible share specific views
+- **Shareable Links**: URLs remember your filters, making it easy to bookmark or possibly share specific views
 
 ### Remote Upload
 - **Secure Upload**: PNG image upload with metadata removal (using ffmpeg)
