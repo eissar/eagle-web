@@ -4,7 +4,7 @@ A web interface for remotely accessing your [Eagle.cool](https://eagle.cool) lib
 
 ![Eagle Web Gallery Screenshot](./demo/web.png)
 
-![Mobile](./demo/mobile.mp4)
+https://github.com/user-attachments/assets/ffc9e546-b807-4acc-8813-2854cb7a3f15
 
 ## Features
 
