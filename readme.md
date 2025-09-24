@@ -63,9 +63,6 @@ by creating an issue
    ```bash
    # Windows
    ./eagle-web.exe
-
-   # macOS/Linux
-   ./eagle-web
    ```
 
 3. **Access the gallery**:
@@ -99,28 +96,10 @@ For more advanced users, [Cloudflare Tunnel](https://developers.cloudflare.com/c
 2. Set up a tunnel to `localhost:8081`
 3. Access via your Cloudflare tunnel URL
 
-### Option 3: Port Forwarding
+Other options:
+- Any other VPN/ Tunnelling solution
+- Port Forwarding
 
-Configure your router to forward port 8081 to your computer (less secure, not recommended).
-
-## Technical Details
-
-### Architecture
-- **Backend**: Go web server with embedded templates
-- **Frontend**: HTMX for interactivity, Tailwind CSS for styling
-- **API Integration**: Direct connection to Eagle's native API (`http://127.0.0.1:41595`)
-- **Image Serving**: Optimized thumbnail delivery
-
-### Security Features
-- **Metadata Removal**: Uploaded images are processed with FFmpeg to remove EXIF data
-- **File Type Validation**: Currently limited to PNG uploads
-- **Local Processing**: All image processing happens locally
-
-### Browser Support
-- Chrome/Chromium 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
 
 ## Security Considerations
 
@@ -131,6 +110,8 @@ Configure your router to forward port 8081 to your computer (less secure, not re
 
 - Use only on trusted networks or with a vpn
 - Don't expose directly to the public internet
+
+- **Metadata Removal**: Uploaded images are processed with FFmpeg to remove EXIF data
 
 ## Known Issues & Limitations
 
@@ -144,10 +125,12 @@ to solve this, the only solution I've found is to restart the actual app.
 ## Roadmap
 
 - [ ] **Expanded Upload Support**: JPEG, GIF, WebP support
+- [ ] **Inspector**: Inspector Side view for viewing all metadata
+- [ ] **MacOS/Linux hosting Support**
 - [ ] **PWA Features**: Progressive Web App with offline capabilities
 - [ ] **Mobile Share Integration**: "Share to Eagle" from mobile browsers
-- [ ] **Basic Authentication**: Optional password protection
 - [ ] **Bulk Operations**: Multi-select and batch actions
+- [ ] **Extended File support**: Support Non image item types
 
 ## Contributing
 
@@ -164,3 +147,4 @@ TODO
 - [HTMX](https://htmx.org) for simplifying frontend interactivity
 - [Tailwind CSS](https://tailwindcss.com) for the CSS framework
 - [Heroicons](https://heroicons.com) for the icon set
+- FFMPEG
