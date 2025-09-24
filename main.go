@@ -3,13 +3,16 @@ package main
 import (
 	"embed"
 	"fmt"
-	"github.com/eissar/eagle-go"
 	"html/template"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/eissar/eagle-go"
 )
 
 const BASE_URL = "http://127.0.0.1:41595"
@@ -25,7 +28,6 @@ type GalleryData struct {
 }
 
 // thumbnailHandler serves a thumbnail image for a given item ID.
-// The route is registered as "/img/" and the item ID is extracted from the URL path.
 func thumbnailHandler(w http.ResponseWriter, r *http.Request) {
 	// Expected path: /img/{itemId}
 	// Trim the leading "/img/" to get the item ID.
@@ -51,6 +53,114 @@ func thumbnailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Serve the file directly.
 	http.ServeFile(w, r, thumbnail)
+}
+
+func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	err := r.ParseMultipartForm(32 * 1024 * 1024) // 32MB
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to parse multipart form Error:\n %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// file, header
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		fmt.Printf("Failed to read file: %s", err)
+		http.Error(w, "Invalid file upload", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+	fmt.Println("reading uploaded file key")
+
+	// Read the first 512 bytes to detect content type
+	buffer := make([]byte, 512)
+	_, err = file.Read(buffer)
+	if err != nil {
+		http.Error(w, "Failed to read file content", http.StatusInternalServerError)
+		return
+	}
+
+	// Reset the file pointer to the beginning
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		http.Error(w, "Failed to reset file pointer", http.StatusInternalServerError)
+		return
+	}
+
+	contentType := http.DetectContentType(buffer)
+	fmt.Printf("Detected contentType: %v\n", contentType)
+	if !strings.HasPrefix(contentType, "image/png") {
+		http.Error(w, "Only png files are allowed (for now)", http.StatusUnsupportedMediaType)
+		return
+	}
+
+	tempInput, err := os.CreateTemp("", "upload-*.tmp")
+	if err != nil {
+		http.Error(w, "Failed to create temp file", http.StatusInternalServerError)
+		return
+	}
+	defer os.Remove(tempInput.Name())
+	defer tempInput.Close()
+
+	tempOutput, err := os.CreateTemp("", "upload-*.tmp")
+	if err != nil {
+		http.Error(w, "Failed to create temp file", http.StatusInternalServerError)
+		return
+	}
+	defer tempOutput.Close()
+
+	// Copy uploaded file to temp input
+	_, err = io.Copy(tempInput, file)
+	if err != nil {
+		http.Error(w, "Failed to save uploaded file", http.StatusInternalServerError)
+		return
+	}
+
+	// just for basic security, remove all metadata from the image.
+	// Use ffmpeg to remove metadata (steganography, etc)
+	cmd := exec.Command("ffmpeg", "-i", tempInput.Name(), "-map_metadata", "-1", "-c:v", "copy", "-f", "image2", "-y", tempOutput.Name())
+	// bytes, err := cmd.CombinedOutput()
+	err = cmd.Run()
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		// fmt.Printf("string: %v\n", string(bytes))
+		http.Error(w, "Failed to process image", http.StatusInternalServerError)
+		return
+	}
+
+	// don't bother checking since won't
+	// catch any real problems in logic
+	// or a race condition with deleting the file
+	// + eagle has an error queue anyways
+	//
+	// check if exists
+	// processedFile, err := os.Open(tempOutput.Name())
+
+	// upload the processed file to eagle.
+	opts := eagle.ItemAddFromPathOptions{
+		Path:       tempOutput.Name(),
+		Name:       "",
+		Website:    "",
+		Annotation: "Uploaded Remotely",
+		Tags:       []string{},
+		FolderId:   "",
+	}
+	err = eagle.ItemAddFromPath(BASE_URL, opts)
+	if err != nil {
+		fmt.Printf("io.Copy err: %v\n", err)
+
+	}
+	_, err = w.Write([]byte("success. item uploaded."))
+	if err != nil {
+		fmt.Printf("error sending response to client: %v\n", err)
+	}
+
+	os.Remove(tempOutput.Name())
 }
 
 // galleryHandler renders the gallery page with a list of items.
@@ -231,6 +341,7 @@ func main() {
 	http.HandleFunc("/gallery", galleryHandler)
 	http.HandleFunc("/img/", thumbnailHandler) // trailing slash to capture itemId
 	http.HandleFunc("/items", itemsHandler)
+	http.HandleFunc("/upload", uploadHandler)
 
 	addr := ":8081"
 	fmt.Printf("Starting server at %s\n", addr)
