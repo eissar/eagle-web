@@ -172,7 +172,7 @@ func galleryHandler(w http.ResponseWriter, r *http.Request) {
 		Keyword: r.URL.Query().Get("keyword"),
 		Ext:     "",
 		Tags:    r.URL.Query().Get("tags"),
-		Folders: "",
+		Folders: r.URL.Query().Get("folders"),
 	}
 	items, fetchErr := eagle.ItemList(BASE_URL, filter)
 	if fetchErr != nil {
@@ -224,7 +224,7 @@ func itemsHandler(w http.ResponseWriter, r *http.Request) {
 		Keyword: r.URL.Query().Get("keyword"),
 		Ext:     "",
 		Tags:    r.URL.Query().Get("tags"),
-		Folders: "",
+		Folders: r.URL.Query().Get("folders"),
 	}
 
 	items, fetchErr := eagle.ItemList(BASE_URL, filter)
