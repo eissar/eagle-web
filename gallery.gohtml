@@ -24,14 +24,40 @@
     <details class="relative">
         <summary id="upload-button" aria-haspopup="true"
             class="p-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer list-none hover-surface">
-            <img src="https://unpkg.com/heroicons@2.0.13/24/outline/information-circle.svg" class="h-5 w-5"
-                style="filter: var(--icon-filter);" alt="Info" />
+            <img src="https://unpkg.com/heroicons@2.0.13/24/outline/arrow-up-tray.svg" class="h-5 w-5"
+                style="filter: var(--icon-filter);" alt="Upload" />
         </summary>
-        <form id="upload-form" hx-post="http://localhost:8081/upload" hx-encoding="multipart/form-data"
-            hx-target="#result" hx-headers='{"Content-Disposition": "form-data"}'>
-            <input type="file" name="file">
-            <button type="submit">Upload</button>
-        </form>
+        <div class="absolute left-0 mt-2 w-96 rounded shadow-lg z-10 overflow-auto dropdown-container max-h-80"
+            style="-ms-overflow-style:none; scrollbar-width:none; background-color: var(--bg-surface);">
+            <form id="upload-form" hx-post="http://localhost:8081/upload" hx-encoding="multipart/form-data"
+                hx-target="#upload-result" hx-headers='{"Content-Disposition": "form-data"}' class="p-4">
+                <!-- hx-on::after-request=""> -->
+                <input type="file" name="file" id="file-input" class="block w-full text-sm text-gray-500
+            file:mr-4 file:py-2 file:px-4
+            file:rounded file:border-0
+            file:text-sm file:font-medium
+            file:bg-indigo-50 file:text-indigo-700
+            hover:file:bg-indigo-100 mb-4" required>
+                <button type="submit" id="submit-button"
+                    class="w-full py-2 px-4 rounded-md bg-indigo-600 text-white font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    onclick="document.querySelector('#upload-form').reset();">
+                    Upload
+                </button>
+                <!-- <style> -->
+                <!--     #file-input:valid~#submit-button { -->
+                <!--         background-color: rgb(79, 70, 229); -->
+                <!--         opacity: 1; -->
+                <!--         cursor: pointer; -->
+                <!--         pointer-events: auto; -->
+                <!--     } -->
+                <!---->
+                <!--     #file-input:valid~#submit-button:hover { -->
+                <!--         background-color: rgb(67, 56, 202); -->
+                <!--     } -->
+                <!-- </style> -->
+            </form>
+            <div id="upload-result" class="p-4 pt-0"></div>
+        </div>
     </details>
 </div>
 {{end}}
@@ -162,6 +188,7 @@
             {{template "options" .}}
             {{template "info" .}}
             {{template "dark_mode_switcher" .}}
+            {{template "upload" .}}
             <div class="flex items-center gap-4 text-sm flex-1 min-w-0 overflow-x-auto justify-end">
                 <div class="relative w-full max-w-xs flex-shrink-0">
                     <!-- Search Icon -->
@@ -175,7 +202,7 @@
                     <input id="search-input" type="search" name="keyword" placeholder="keyword search" hx-get="/items"
                         hx-trigger="keyup changed delay:500ms" hx-target="#photo-grid" hx-swap="outerHTML"
                         hx-indicator=".htmx-indicator"
-                        class="block w-full border border-transparent rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent input-field" />
+                        class="block w-full border border-transparent rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:border-transparent input-field focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 focus-visible:border-transparent" />
                 </div>
             </div>
         </div>
@@ -477,7 +504,6 @@
             background-color: var(--bg-input-focus);
         }
 
-        /* Tag Badge Styling */
         .tag-badge {
             cursor: pointer;
             background-color: var(--bg-surface-hover);
@@ -491,6 +517,7 @@
             color: var(--text-primary);
         }
     </style>
+
     <script>
         (function () {
             const savedTheme = localStorage.getItem('theme');
@@ -509,6 +536,7 @@
             });
         })();
     </script>
+
 </head>
 
 <body class="antialiased">
