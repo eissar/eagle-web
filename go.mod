@@ -18,6 +18,8 @@ require (
 )
 
 require (
+	github.com/fsnotify/fsnotify v1.9.0
 	github.com/labstack/echo/v4 v4.13.4
+	github.com/radovskyb/watcher v1.0.7
 	golang.org/x/sys v0.36.0 // indirect
 )
