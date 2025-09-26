@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/eissar/eagle-go"
 )
@@ -40,7 +41,7 @@ func thumbnailHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, thumbnail)
 }
 
-func uploadHandler(w http.ResponseWriter, r *http.Request) {
+func uploadHandlerOld(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -145,6 +146,76 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	os.Remove(tempOutput.Name())
+}
+
+func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	const maxSize int64 = 32 * 1024 * 1024 // 32MB
+
+	err := r.ParseMultipartForm(maxSize)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to parse multipart form Error:\n %v", err), http.StatusBadRequest)
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		fmt.Printf("Failed to read file: %v", err)
+		http.Error(w, "Invalid file upload", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	if header.Size > maxSize {
+		http.Error(w, "File too large", http.StatusBadRequest)
+		return
+	}
+
+	tempFile, err := os.CreateTemp("", "upload-*.tmp")
+	if err != nil {
+		fmt.Printf("Failed to create temp file: %v\n", err)
+		http.Error(w, "Failed to create temp file", http.StatusInternalServerError)
+		return
+	}
+
+	defer func() {
+		tempFile.Close()
+		// Wait a while before removing the file
+		// eagle returns 200 for 202 so this prevents
+		// race conditions while uploading.
+		// TODO: implement asynchronous / jobid
+		time.Sleep(time.Second * 30)
+		if removeErr := os.Remove(tempFile.Name()); removeErr != nil {
+			fmt.Printf("Failed to remove temp file %s: %v\n", tempFile.Name(), removeErr)
+		}
+	}()
+
+	if _, err = io.Copy(tempFile, file); err != nil {
+		return
+	}
+
+	opts := eagle.ItemAddFromPathOptions{
+		Path:       tempFile.Name(),
+		Name:       header.Filename,
+		Website:    "",
+		Annotation: "Uploaded Remotely",
+		Tags:       []string{},
+		FolderId:   "",
+	}
+	err = eagle.ItemAddFromPath(BASE_URL, opts)
+	if err != nil {
+		fmt.Printf("Eagle upload failed: %v\n", err)
+		http.Error(w, "Failed to upload file to Eagle", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if _, err = w.Write([]byte("success. item uploaded.")); err != nil {
+		fmt.Printf("error sending response to client: %v\n", err)
+	}
 }
 
 // galleryHandler renders the gallery page with a list of items.

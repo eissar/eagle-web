@@ -101,11 +101,22 @@ var tmplFuncs = template.FuncMap{
 }
 
 func main() {
-	// Register routes using the net/http default ServeMux.
+	allowUpload := true
+
+	flags := os.Args
+	for _, flag := range flags {
+		if flag == "--block-upload" {
+			allowUpload = false
+		}
+	}
+
 	http.HandleFunc("/gallery", galleryHandler)
 	http.HandleFunc("/img/", thumbnailHandler) // trailing slash to capture itemId
 	http.HandleFunc("/items", itemsHandler)
-	http.HandleFunc("/upload", uploadHandler)
+	if allowUpload {
+		fmt.Println("[WARNING] /upload is enabled. Uploaded content is not checked for malicious files. Do not run this service on an unsecured network. you can disable the upload feature with --block-upload")
+		http.HandleFunc("/upload", uploadHandler)
+	}
 
 	addr := ":8081"
 	fmt.Printf("Starting server at %s\n", addr)
