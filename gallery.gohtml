@@ -29,8 +29,8 @@
         </summary>
         <div class="absolute left-0 mt-2 w-96 rounded shadow-lg z-10 overflow-auto dropdown-container max-h-80"
             style="-ms-overflow-style:none; scrollbar-width:none; background-color: var(--bg-surface);">
-            <form id="upload-form" hx-post="http://localhost:8081/upload" hx-encoding="multipart/form-data"
-                hx-target="#upload-result" hx-headers='{"Content-Disposition": "form-data"}'
+            <form id="upload-form" hx-post="/upload" hx-encoding="multipart/form-data" hx-target="#upload-result"
+                hx-headers='{"Content-Disposition": "form-data"}'
                 hx-on::after-request="if(event.detail.successful) this.reset()" class="p-4">
 
                 <!-- hx-on::after-request=""> -->
