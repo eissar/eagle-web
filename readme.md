@@ -111,11 +111,10 @@ Other options:
 - Use only on trusted networks or with a vpn
 - Don't expose directly to the public internet
 
-- **Metadata Removal**: Uploaded images are processed with FFmpeg to remove EXIF data
+- see `configuring` for configuring the remote upload feature
 
 ## Known Issues & Limitations
 
-- **Upload Format**: Currently only PNG files are supported for upload
 - **Eagle Dependency**: Eagle.cool must be running for the web interface to work
 - **API Reliability**: Occasionally Eagle's API may become unresponsive
 I can't reproduce this yet, but sometimes the eagle api server will become unresponsive with no explanation.
@@ -132,6 +131,11 @@ to solve this, the only solution I've found is to restart the actual app.
 - [ ] **Bulk Operations**: Multi-select and batch actions
 - [ ] **Extended File support**: Support Non image item types
 
+## Configuring
+
+- use `--block-upload` to block all uploads
+- more coming
+
 ## Contributing
 
 Please feel free to submit issues and pull requests.
@@ -147,4 +151,3 @@ TODO
 - [HTMX](https://htmx.org) for simplifying frontend interactivity
 - [Tailwind CSS](https://tailwindcss.com) for the CSS framework
 - [Heroicons](https://heroicons.com) for the icon set
-- FFMPEG
