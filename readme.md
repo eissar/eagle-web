@@ -14,7 +14,7 @@ https://github.com/user-attachments/assets/ffc9e546-b807-4acc-8813-2854cb7a3f15
 - **Masonry Layout**: Eagle-style grid that adapts to screen size
 - **Modern UI**: Built with Tailwind CSS
 
-### Smart Browsing
+### Easy Browsing
 - **Real-time Search**: Find images with debounced search
 - **Tag Filtering**: Click any tag to filter your collection
 - **Folder Filtering**: Click any folder to filter your collection
