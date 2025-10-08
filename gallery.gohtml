@@ -529,7 +529,7 @@
         })();
 
         // Close popouts (details) when clicking outside
-        document.addEventListener('click', function (event) {
+        document.addEventListener('click', function(event) {
             const details = document.querySelectorAll('details');
             details.forEach(detail => {
                 if (!detail.contains(event.target)) {
@@ -537,7 +537,6 @@
                 }
             });
         });
-
     </script>
 
 </head>
