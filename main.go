@@ -16,7 +16,10 @@ var ( // defined in ./assets_dev.go ./assets_prod.go
 	itemsTempl   *template.Template
 )
 
-const BASE_URL = "http://127.0.0.1:41595"
+const (
+	BASE_URL = "http://127.0.0.1:41595"
+	VERSION  = "v0.0.0"
+)
 
 var PageSize = 20 // 20 is default
 
@@ -26,6 +29,7 @@ type GalleryData struct {
 	AllTags    []string
 	AllFolders []eagle.FolderDetailOverview
 	Filter     eagle.ItemListOptions
+	Version    string
 }
 
 // GetEagleThumbnailFullRes returns the highest‑resolution thumbnail for the given item.

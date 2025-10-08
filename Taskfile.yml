@@ -9,8 +9,8 @@ vars:
 tasks:
   build:
     cmds:
-      - '{{.SHELL}} rm -r ./eagle-web.exe'
-      - 'go build -ldflags="-s -w" {{.CLI_ARGS}}'
+      - 'echo "building version $(git describe --tags --abbrev=0)"'
+      - 'go build -ldflags="-s -w -X=main.VERSION=$(git describe --tags --abbrev=0)" {{.CLI_ARGS}}'
       - 'upx eagle-web.exe'
       # -  upx --brute eagle-web.exe
   dev:

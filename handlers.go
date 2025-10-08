@@ -252,7 +252,7 @@ func galleryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// first draw
-	renderErr := galleryTempl.Execute(w, GalleryData{Items: items, Page: 0, AllTags: tagNames, AllFolders: folders, Filter: filter})
+	renderErr := galleryTempl.Execute(w, GalleryData{Items: items, Page: 0, AllTags: tagNames, AllFolders: folders, Filter: filter, Version: VERSION})
 	if renderErr != nil {
 		fmt.Printf("renderErr: %v\n", renderErr)
 		http.Error(w, "failed to render template", http.StatusInternalServerError)
