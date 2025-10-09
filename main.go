@@ -18,8 +18,9 @@ var ( // defined in ./assets_dev.go ./assets_prod.go
 
 const (
 	BASE_URL = "http://127.0.0.1:41595"
-	VERSION  = "v0.0.0"
 )
+
+var VERSION = "v0.0.0"
 
 var PageSize = 20 // 20 is default
 
@@ -111,6 +112,7 @@ func main() {
 	http.HandleFunc("/items", itemsHandler)
 	http.HandleFunc("/upload", uploadHandler)
 
+	fmt.Printf("eagle-web version %s\n", VERSION)
 	addr := ":8081"
 	fmt.Printf("Starting server at %s\n", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
