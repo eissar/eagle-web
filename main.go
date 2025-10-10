@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -106,6 +107,9 @@ var tmplFuncs = template.FuncMap{
 }
 
 func main() {
+	port := flag.String("port", "8081", "port to listen on")
+	host := flag.String("host", "127.0.0.1", "host address to bind to")
+	flag.Parse()
 	// Register routes using the net/http default ServeMux.
 	http.HandleFunc("/gallery", galleryHandler)
 	http.HandleFunc("/img/", thumbnailHandler) // trailing slash to capture itemId
@@ -113,8 +117,12 @@ func main() {
 	http.HandleFunc("/upload", uploadHandler)
 
 	fmt.Printf("eagle-web version %s\n", VERSION)
-	addr := ":8081"
-	fmt.Printf("Starting server at %s\n", addr)
+	addr := fmt.Sprintf("%s:%s", *host, *port)
+
+	// is_http = false
+	// ... if is_http ... (can we just let the client update?)
+
+	fmt.Printf("Starting server at http://%s\n", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		fmt.Printf("Server failed: %v\n", err)
 	}
