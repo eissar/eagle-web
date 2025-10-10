@@ -98,10 +98,10 @@
                         </td>
                     </tr>
 
-                     <tr>
-                         <td class="px-3 py-2 font-medium" style="color: var(--text-secondary);">Version</td>
-                         <td class="px-3 py-2" style="color: var(--text-primary);">{{.Version}}</td>
-                     </tr>
+                    <tr>
+                        <td class="px-3 py-2 font-medium" style="color: var(--text-secondary);">Version</td>
+                        <td class="px-3 py-2" style="color: var(--text-primary);">{{.Version}}</td>
+                    </tr>
                     <!-- Add more rows like the ones above for additional metadata -->
                 </tbody>
             </table>
@@ -527,6 +527,17 @@
                 }
             });
         })();
+
+        // Close popouts (details) when clicking outside
+        document.addEventListener('click', function (event) {
+            const details = document.querySelectorAll('details');
+            details.forEach(detail => {
+                if (!detail.contains(event.target)) {
+                    detail.open = false;
+                }
+            });
+        });
+
     </script>
 
 </head>
