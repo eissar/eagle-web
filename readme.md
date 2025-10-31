@@ -123,7 +123,7 @@ to solve this, the only solution I've found is to restart the actual app.
 
 ## Roadmap
 
-- [ ] **Expanded Upload Support**: JPEG, GIF, WebP support
+<!-- - [ ] **Expanded Upload Support**: JPEG, GIF, WebP support -->
 - [ ] **Inspector**: Inspector Side view for viewing all metadata
 - [ ] **MacOS/Linux hosting Support**
 - [ ] **PWA Features**: Progressive Web App with offline capabilities
@@ -134,7 +134,12 @@ to solve this, the only solution I've found is to restart the actual app.
 ## Configuring
 
 - use `--block-upload` to block all uploads
-- more coming
+
+- Environment Variables:
+    - `EAGLE_URL`: Set the Eagle API URL (default: http://127.0.0.1:41595)
+    warning: please keep in mind if your eagle library is hosted on another pc
+    that the library files still need to be accessible to the running application
+    so we can read thumbnails etc
 
 ## Contributing
 

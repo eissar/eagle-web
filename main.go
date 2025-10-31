@@ -17,9 +17,14 @@ var ( // defined in ./assets_dev.go ./assets_prod.go
 	itemsTempl   *template.Template
 )
 
-const (
-	BASE_URL = "http://127.0.0.1:41595"
-)
+var BASE_URL = getEnv("EAGLE_URL", "http://127.0.0.1:41595")
+
+func getEnv(key string, fallback string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return fallback
+}
 
 var VERSION = "v0.0.0"
 
