@@ -9,11 +9,11 @@ import (
 	"html/template"
 )
 
-//go:embed gallery.gohtml
+//go:embed templates/*.gohtml
 var tmplFS embed.FS
 
 func init() {
-	galleryTempl = template.Must(template.New("gallery").Funcs(tmplFuncs).ParseFS(tmplFS, "gallery.gohtml"))
-	itemsTempl = template.Must(template.New("items").Funcs(tmplFuncs).ParseFS(tmplFS, "gallery.gohtml"))
-	detailTempl = template.Must(template.New("detail").Funcs(tmplFuncs).ParseFS(tmplFS, "gallery.gohtml"))
+	galleryTempl = template.Must(template.New("gallery").Funcs(tmplFuncs).ParseFS(tmplFS, "templates/gallery.gohtml"))
+	itemsTempl = template.Must(template.New("items").Funcs(tmplFuncs).ParseFS(tmplFS, "templates/gallery.gohtml"))
+	detailTempl = template.Must(template.New("detail").Funcs(tmplFuncs).ParseFS(tmplFS, "templates/gallery.gohtml"))
 }

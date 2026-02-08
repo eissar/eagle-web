@@ -128,6 +128,9 @@ func main() {
 	fmt.Printf("eagle-web version %s\n", VERSION)
 	addr := fmt.Sprintf("%s:%s", *host, *port)
 
+	// this is ugly.
+	http.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+
 	// is_http = false
 	// ... if is_http ... (can we just let the client update?)
 
