@@ -7,17 +7,31 @@ vars:
   SHELL: '{{if eq .OS "Windows_NT"}}powershell{{end}}'
 
 tasks:
-  build:
-    cmds:
-      - 'echo "building version $(git describe --tags --abbrev=0)"'
-      - 'go build -ldflags="-s -w -X=main.VERSION=$(git describe --tags --abbrev=0)" {{.CLI_ARGS}}'
-      - 'upx eagle-web.exe'
-      # -  upx --brute eagle-web.exe
   dev:
     cmds:
       - '{{.SHELL}} rm -r ./eagle-web.exe'
-      - 'go build {{.CLI_ARGS}}'
+      - 'go build {{.CLI_ARGS}}' 
       - 'upx eagle-web.exe'
+  build-win:
+    cmds:
+      - 'echo "building version $(git describe --tags --abbrev=0)"'
+      - 'go build -ldflags="-s -w -X=main.VERSION=$(git describe --tags --abbrev=0)" {{.CLI_ARGS}} -o build/eagle-web.exe'
+      - 'upx build/eagle-web.exe'
+      # -  upx --brute build/eagle-web.exe
+  build-osx-amd64:
+    desc: "Build for macOS AMD64"
+    cmds:
+      - 'GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w -X=main.VERSION=$(git describe --tags --abbrev=0)" {{.CLI_ARGS}} -o build/eagle-web-darwin-amd64'
+  build-osx-arm64:
+    desc: "Build for macOS ARM64"
+    cmds:
+      - 'GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w -X=main.VERSION=$(git describe --tags --abbrev=0)" {{.CLI_ARGS}} -o build/eagle-web-darwin-arm64'
+  build-all:
+    desc: "Build for all platforms"
+    cmds:
+      - task: build-win
+      - task: build-osx-amd64
+      - task: build-osx-arm64
   default:
     cmds:
       - echo "{{.GREETING}}"
