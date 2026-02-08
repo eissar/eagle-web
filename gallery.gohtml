@@ -204,21 +204,26 @@
 
 {{define "detail"}}
 <p>
-    ID: {{.ID}}
+    Palettes: {{range .Palettes}}{{.}} {{end}}
+
     Name: {{.Name}}
-    Size: {{.Size}}
-    Extension: {{.Ext}}
+    Notes: {{.Annotation}}
+    URL: {{.URL}}
     Tags: {{range .Tags}}{{.}} {{end}}
     Folders: {{range .Folders}}{{.}} {{end}}
-    IsDeleted: {{.IsDeleted}}
-    URL: {{.URL}}
-    Annotation: {{.Annotation}}
-    ModificationTime: {{.ModificationTime}}
+
+    <!-- IsDeleted: {{.IsDeleted}} -->
+    <!-- NoThumbnail: {{if .NoThumbnail}}{{.NoThumbnail}}{{else}}false{{end}} -->
+
+    Extension: {{.Ext}}
+    Size: {{.Size}}
     Dimensions: {{.Width}}x{{.Height}}
-    NoThumbnail: {{if .NoThumbnail}}{{.NoThumbnail}}{{else}}false{{end}}
-    LastModified: {{.LastModified}}
-    Palettes: {{range .Palettes}}{{.}} {{end}}
     Star: {{if .Star}}{{.Star}}{{else}}0{{end}}
+
+    ModificationTime: {{.ModificationTime}}
+    LastModified: {{.LastModified}}
+
+<div class="tagWrapper">ID: {{.ID}}</div>
 </p>
 {{end}}
 
@@ -550,7 +555,7 @@
         })();
 
         // Close popouts (details) when clicking outside
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             const details = document.querySelectorAll('details');
             details.forEach(detail => {
                 if (!detail.contains(event.target)) {
