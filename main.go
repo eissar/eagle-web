@@ -120,7 +120,7 @@ func main() {
 	http.HandleFunc("/gallery", galleryHandler)
 
 	http.HandleFunc("/img/", thumbnailHandler) // trailing slash to capture itemId
-	http.HandleFunc("/detail/", itemsHandler)  // trailing slash to capture itemId
+	http.HandleFunc("/detail/", detailHandler) // trailing slash to capture itemId
 
 	http.HandleFunc("/items", itemsHandler)
 	http.HandleFunc("/upload", uploadHandler)
