@@ -15,6 +15,7 @@ import (
 var ( // defined in ./assets_dev.go ./assets_prod.go
 	galleryTempl *template.Template
 	itemsTempl   *template.Template
+	detailTempl  *template.Template
 )
 
 var BASE_URL = getEnv("EAGLE_URL", "http://127.0.0.1:41595")
@@ -117,7 +118,10 @@ func main() {
 	flag.Parse()
 	// Register routes using the net/http default ServeMux.
 	http.HandleFunc("/gallery", galleryHandler)
+
 	http.HandleFunc("/img/", thumbnailHandler) // trailing slash to capture itemId
+	http.HandleFunc("/detail/", itemsHandler)  // trailing slash to capture itemId
+
 	http.HandleFunc("/items", itemsHandler)
 	http.HandleFunc("/upload", uploadHandler)
 
