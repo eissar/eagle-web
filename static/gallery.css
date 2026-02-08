@@ -10,6 +10,13 @@ html[data-theme] {
     visibility: visible;
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
 /* Theme variables based on data attribute */
 html[data-theme="light"] body,
 body.light-mode {
@@ -291,3 +298,30 @@ body {
     background-color: var(--bg-surface);
     color: var(--text-primary);
 }
+
+.layout {
+  display: flex;               /* place children side‑by‑side */
+  width: 100%;
+  height: calc(100vh - 6rem);  /* match header height */
+}
+
+/* Inspector panel */
+.inspector {
+  width: 320px;                /* desired width when open */
+  min-width: 320px;
+  border-left: 1px solid var(--border-color-light);
+  overflow-y: auto;
+  height: calc(100vh - 6rem);  /* match header height */
+}
+
+/* Hidden state */
+.inspector.hidden {
+  display: none;
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;                     /* take the remaining space */
+  overflow: auto;
+}
+
