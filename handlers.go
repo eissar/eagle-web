@@ -304,3 +304,25 @@ func itemsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+// fetches item metadata by eagle ID
+func detailHandler(w http.ResponseWriter, r *http.Request) {
+	itemID := strings.TrimPrefix(r.URL.Path, "/detail/")
+	if itemID == "" {
+		http.Error(w, "missing itemId", http.StatusBadRequest)
+		return
+	}
+
+	detail, err := eagle.ItemInfo(BASE_URL, itemID)
+	if err != nil {
+		http.Error(w, "error retrieving for itemID "+itemID, http.StatusBadRequest)
+		return
+	}
+
+	renderErr := detailTempl.Execute(w, detail)
+	if renderErr != nil {
+		fmt.Printf("renderErr: %v\n", renderErr)
+		http.Error(w, "failed to render template", http.StatusInternalServerError)
+		return
+	}
+}
