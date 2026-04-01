@@ -20,4 +20,5 @@
 *.ignore.*
 *.vim
 
+.env
 eagle-web
